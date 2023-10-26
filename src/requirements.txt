@@ -1,0 +1,4 @@
+dash
+pandas==1.4.3
+plotly==5.9.0
+packaging==21.3
