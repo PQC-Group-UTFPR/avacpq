@@ -13,7 +13,7 @@ Alternatively, one can execute the Dash app by using `python3 main.py` after ins
 
 First, install docker. To build the docker image for this project download this repository, `cd avacpq` and then use `docker build -t avacpq .`
 
-Execute with `docker run -p 8050:8050 avacpq` (use `-d` if you want detached mode). It will create a Python/dash application accessible at port 8050.
+Execute with `docker run --network host -p 8050:8050 avacpq` (use `-d` if you want detached mode). It will create a Python/dash application accessible at port 8050.
 
 Test it with [http://localhost:8050](http://localhost:8050).
 
