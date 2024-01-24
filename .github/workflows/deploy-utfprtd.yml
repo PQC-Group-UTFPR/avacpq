@@ -58,7 +58,8 @@ jobs:
             command: |
               docker login --username	${{ secrets.DOCKERHUB_USERNAME }} --password ${{ secrets.DOCKERHUB_TOKEN }}
               docker run aagiron/avacpq:latest
-            host: ${{ secrets.UTFPRTD_HOST }}
+            #host: ${{ secrets.UTFPRTD_HOST }}
+            host: ${{ secrets.UTFPRTD_HOST_IP_228 }}
             user: root
             #port: 443
             key: ${{ secrets.UTFPRTD_PRIVATE_KEY}}
