@@ -59,8 +59,9 @@ jobs:
             command: |
               apk add docker
               service docker start
-              docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password ${{ secrets.DOCKERHUB_TOKEN }}
-              docker run aagiron/avacpq:latest
+              echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
+              docker run -p 8050:8050 aagiron/avacpq:latest
+              docker logout
             host: ${{ secrets.UTFPRTD_HOST }}
             user: root
             #port: 443
