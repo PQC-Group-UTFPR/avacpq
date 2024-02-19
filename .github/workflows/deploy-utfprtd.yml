@@ -1,4 +1,5 @@
 # This workflow will install Python dependencies, run tests and lint with a single version of Python
+# There is a section specific for UTFPR-TD VM server. 
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-python
 
 name: AVACPQ Python application test and deploy workflow
@@ -54,8 +55,9 @@ jobs:
       steps:
         - name: deploy via OPENSSH Private Key
           uses: fifsky/ssh-action@master
-          with:          #TODO: download from registry; build and run
+          with:          #install docker in Alpine; download from docker registry; build and run
             command: |
+              apk add docker
               docker login --username	${{ secrets.DOCKERHUB_USERNAME }} --password ${{ secrets.DOCKERHUB_TOKEN }}
               docker run aagiron/avacpq:latest
             host: ${{ secrets.UTFPRTD_HOST }}
