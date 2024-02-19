@@ -32,10 +32,11 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi    
     #edit: logs in docker hub, (build and) publish to the private registry (allowing deploy step)   
     - name: publish-docker-image  
-      uses: mr-smithers-excellent/docker-build-push@v4
+      uses: mr-smithers-excellent/docker-build-push@v6
       with:
           image: aagiron/avacpq
           registry: docker.io
+          addLatest: true 
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
     - name: Lint with flake8
@@ -58,7 +59,7 @@ jobs:
           with:          #install docker in Alpine; download from docker registry; build and run
             command: |
               apk add docker
-              service docker start
+              service docker start              
               echo ${{ secrets.DOCKERHUB_TOKEN }} | docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password-stdin
               docker run -p 8050:8050 aagiron/avacpq:latest
               docker logout
@@ -66,4 +67,4 @@ jobs:
             user: root
             #port: 443
             key: ${{ secrets.UTFPRTD_PRIVATE_KEY}}
-            args: "-tt -vvv"
+            args: "-tt -v"
