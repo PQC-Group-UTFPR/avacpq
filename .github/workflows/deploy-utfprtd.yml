@@ -58,7 +58,8 @@ jobs:
           with:          #install docker in Alpine; download from docker registry; build and run
             command: |
               apk add docker
-              docker login --username	${{ secrets.DOCKERHUB_USERNAME }} --password ${{ secrets.DOCKERHUB_TOKEN }}
+              service docker start
+              docker login --username ${{ secrets.DOCKERHUB_USERNAME }} --password ${{ secrets.DOCKERHUB_TOKEN }}
               docker run aagiron/avacpq:latest
             host: ${{ secrets.UTFPRTD_HOST }}
             user: root
