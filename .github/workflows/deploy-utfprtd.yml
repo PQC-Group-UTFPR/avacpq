@@ -7,8 +7,6 @@ name: AVACPQ Python application test and deploy workflow
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 permissions:
   contents: read
