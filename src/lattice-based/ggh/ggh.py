@@ -22,6 +22,46 @@ def debug_print(message, variable=None):
             print(variable)
 
 
+def get_user_choice():
+    """
+    Prompts the user to choose between using a hardcoded plaintext or a random one.
+
+    Returns:
+        bool: True if the user chooses random plaintext, False otherwise.
+    """
+    choice = (
+        input("Do you want to use the hardcoded plaintext or a random one? (h/r): ")
+        .strip()
+        .lower()
+    )
+    return choice == "r"
+
+
+def get_dimensions():
+    """
+    Prompts the user to enter the number of dimensions for the plaintext vector.
+
+    Returns:
+        int: The number of dimensions.
+    """
+    return int(input("Enter the number of dimensions: ").strip())
+
+
+def generate_random_plaintext(n, r):
+    """
+    Generates a random plaintext vector of specified dimensions and range.
+
+    Args:
+        n (int): The number of dimensions for the plaintext vector.
+        r (int): The range for the random values in the plaintext vector.
+
+    Returns:
+        numpy.ndarray: The generated random plaintext vector.
+    """
+    plaintext = np.array([secrets.randbelow(r) - (r / 2) for _ in range(n)])
+    return plaintext
+
+
 class GGH:
     """
     Goldreich-Goldwasser-Halevi (GGH) encryption system implementation.
@@ -177,11 +217,21 @@ class GGH:
 
 # Example usage:
 if __name__ == "__main__":
+    # Check if user wants random or hardcoded input
+    use_random_plaintext = get_user_choice()
+
     # Initialize GGH with dimension n
-    ggh = GGH(n=2)
+    if use_random_plaintext:
+        n = get_dimensions()
+    else:
+        n = 2
+    ggh = GGH(n=n)
 
     # Given plaintext
-    plaintext = np.array([3, -7])
+    if use_random_plaintext:
+        plaintext = generate_random_plaintext(n, ggh.rand)
+    else:
+        plaintext = np.array([3, -7])
     debug_print("Message plaintext", plaintext)
 
     # Generate public key
