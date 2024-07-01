@@ -1,6 +1,25 @@
 import numpy as np
 from numpy.linalg import inv
 import secrets
+from datetime import datetime
+
+# Print debug messages?
+debug = True
+
+
+def debug_print(message, variable=None):
+    """
+    Prints debug messages with a timestamp if debug mode is enabled.
+
+    Args:
+        message (str): The debug message to print.
+        variable (optional): Additional variable to print alongside the message.
+    """
+    if debug:
+        current_time = datetime.now().strftime("%H:%M")
+        print(f"[DEBUG-{current_time}] {message}")
+        if variable is not None:
+            print(variable)
 
 
 class GGH:
@@ -32,6 +51,7 @@ class GGH:
         """
         # Choose r automatically within a reasonable range
         r = secrets.randbelow(self.rand) + 1
+        debug_print(f"Chosen r: {r}")
 
         # Given lattice basis
         B = np.array(
@@ -47,6 +67,7 @@ class GGH:
                     for _ in range(self.n)
                 ]
             )
+        debug_print("Lattice basis B:", B)
 
         # Desired lattice basis
         B_prime = np.array(
@@ -62,9 +83,11 @@ class GGH:
                     for _ in range(self.n)
                 ]
             )
+        debug_print("Desired lattice basis B_prime:", B_prime)
 
         # Compute the public key U
         U = np.dot(B_prime, inv(B))
+        debug_print("Public key U:", U)
 
         return B_prime, U
 
@@ -79,6 +102,7 @@ class GGH:
             np.array: The generated error vector.
         """
         error = np.array([secrets.randbelow(2 * e + 1) - e for _ in range(self.n)])
+        debug_print("Error vector:", error)
 
         return error
 
@@ -95,6 +119,7 @@ class GGH:
             np.array: The ciphertext resulting from the encryption process.
         """
         ciphertext = np.dot(plaintext, public_key) + error
+        debug_print("Ciphertext:", ciphertext)
 
         return ciphertext
 
@@ -110,6 +135,7 @@ class GGH:
             np.array: The decrypted plaintext (before Babai rounding).
         """
         decrypted_plaintext = np.dot(ciphertext, public_key_inverse)
+        debug_print("Decrypted plaintext (before Babai rounding):", decrypted_plaintext)
 
         return decrypted_plaintext
 
@@ -126,6 +152,7 @@ class GGH:
             np.array: The rounded decrypted plaintext.
         """
         rounded_decrypted_plaintext = decrypted_plaintext - np.dot(error, inverse_basis)
+        debug_print("Rounded decrypted plaintext:", rounded_decrypted_plaintext)
 
         return rounded_decrypted_plaintext
 
@@ -155,6 +182,7 @@ if __name__ == "__main__":
 
     # Given plaintext
     plaintext = np.array([3, -7])
+    debug_print("Message plaintext", plaintext)
 
     # Generate public key
     B_prime, U = ggh.generate_keys()
@@ -170,3 +198,4 @@ if __name__ == "__main__":
     decrypted_plaintext = ggh.decrypt(public_key_inverse, ciphertext)
     rounded_decrypted_plaintext = ggh.babai_rounding(decrypted_plaintext, error, inv(U))
     recovered_plaintext = ggh.recover_plaintext(rounded_decrypted_plaintext, U)
+    debug_print("Recovered plaintext:", recovered_plaintext)
