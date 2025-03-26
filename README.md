@@ -28,6 +28,5 @@ Test it with [http://localhost:8050](http://localhost:8050).
 
 ## Contribution Guidelines
 
-See CONTRIBUTING file (TBD)
-
-(Mainly, search for issues, assign one or more for you, create branch, commit, PR.)
+Please refer to [CONTRIBUTING](./CONTRIBUTING.md). We follow the [Conventional Commits](https://www.conventionalcommits.org/)
+specification for commit messages. Thanks [Gabriel](https://github.com/gabrielzschmitz) for the contribution guidelines.
