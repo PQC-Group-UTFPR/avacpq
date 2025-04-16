@@ -216,36 +216,47 @@ class GGH:
 
 
 # Example usage:
-if __name__ == "__main__":
-    # Check if user wants random or hardcoded input
-    use_random_plaintext = get_user_choice()
-
-    # Initialize GGH with dimension n
-    if use_random_plaintext:
-        n = get_dimensions()
-    else:
-        n = 2
+def get_ggh_data(use_random_plaintext=True, n=2):
+    """
+    Gera os dados necessários para o gráfico ou outros usos.
+    
+    Args:
+        use_random_plaintext (bool): Se deve usar texto aleatório ou um valor fixo.
+        n (int): A dimensionalidade do vetor de texto claro.
+        
+    Returns:
+        dict: Dados de x e y para o gráfico, contendo plaintext, ciphertext, error e recovered plaintext.
+    """
+    # Inicializa o sistema GGH
     ggh = GGH(n=n)
 
-    # Given plaintext
+    # Gerar o plaintext (mensagem original)
     if use_random_plaintext:
         plaintext = generate_random_plaintext(n, ggh.rand)
     else:
         plaintext = np.array([3, -7])
     debug_print("Message plaintext", plaintext)
 
-    # Generate public key
+    # Gerar chave pública
     B_prime, U = ggh.generate_keys()
 
-    # Generate error vector
+    # Gerar vetor de erro
     error = ggh.generate_error(e=1)
 
-    # Encrypt plaintext
+    # Criptografar o plaintext
     ciphertext = ggh.encrypt(U, plaintext, error)
 
-    # Decrypt ciphertext
+    # Descriptografar o ciphertext
     public_key_inverse = inv(U)
     decrypted_plaintext = ggh.decrypt(public_key_inverse, ciphertext)
     rounded_decrypted_plaintext = ggh.babai_rounding(decrypted_plaintext, error, inv(U))
     recovered_plaintext = ggh.recover_plaintext(rounded_decrypted_plaintext, U)
     debug_print("Recovered plaintext:", recovered_plaintext)
+
+    # Retornar os dados necessários para o gráfico
+    return {
+        "plaintext": plaintext,
+        "ciphertext": ciphertext,
+        "error": error,
+        "recovered_plaintext": recovered_plaintext
+    }
