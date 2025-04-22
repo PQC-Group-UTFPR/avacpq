@@ -1,180 +1,179 @@
 import random
 import time
 
+# --- Tipos para organizar os dados da chave pública e do ciphertext ---
 
-# --- Tipos para organizar ---
 class PublicKey:
+    # Estrutura que representa a chave pública composta por vetores A, B e o módulo Q
     def __init__(self, A, B, Q):
         self.A = A
         self.B = B
         self.Q = Q
 
-
 class Ciphertext:
+    # Estrutura que representa o texto cifrado como um par (U, V)
     def __init__(self, U, V):
         self.U = U
         self.V = V
 
 
 def main():
+    # Inicializa a semente aleatória com o tempo atual
     random.seed(time.time())
 
-    # --- Parâmetros principais ---
-    nvals = 20
-    q = 97
-    s = 20
-    message = 1  # bit a ser cifrado (0 ou 1)
+    # Mensagem introdutória sobre o LWE
+    print("=====================================================")
+    print("     LWE (Learning With Errors) - Cifra de 1 bit     ")
+    print("=====================================================")
+    print("Equcao base: b = (a * s + e) mod q")
+    print("Onde:")
+    print("  a -> valor aleatorio de Z_q")
+    print("  s -> chave secreta")
+    print("  e -> pequeno erro aleatorio (ruido)")
+    print("  q -> numero primo (modulo)\n")
+
+    # --- Definindo os parâmetros principais ---
+    nvals = 20  # Número de pares (a, b) na chave pública
+    q = 97      # Módulo primo
+    s = 20      # Chave secreta
+    message = random.randint(0, 1)  # Bit aleatório a ser cifrado
 
     # --- Geração de chaves ---
+    print("\n--- Gerando chaves publicas e secretas ---")
+    print("Requisitos: precisamos de pares (a, b) tais que b = a*s + e (mod q)\n")
     publicKey, secretKey, eList = KeyGen(nvals, q, s)
 
-    # --- Display dos parâmetros ---
-    print("\n------Parameters and keys-------")
-    print("Message to send:\t", message)
-    print("Public Key (A):\t", publicKey.A)
-    print("Public Key (B):\t", publicKey.B)
-    print("Errors (e):\t\t", eList)
-    print("Secret key:\t\t", secretKey)
-    print("Prime number:\t\t", q)
+    # --- Exibindo os parâmetros e chaves geradas ---
+    print("\n--- Parametros e chaves geradas ---")
+    print("Bit a ser cifrado:\t", message)
+    print("Chave Publica (A):\t", publicKey.A)
+    print("Chave Publica (B):\t", publicKey.B)
+    print("Erros usados (e):\t", eList)
+    print("Chave Secreta (s):\t", secretKey)
+    print("Numero primo (q):\t", q)
 
-    # --- Amostragem e criptografia ---
+    # --- Cifrando a mensagem ---
+    print("\n--- Cifrando a mensagem ---")
     cipher, sampleIndices, sampledPairs = Encrypt(message, publicKey)
 
-    print("\n------Sampling Process from public key-------")
-    print("Sampling", sampleIndices)
-    print("Sampled pairs: ", end="")
+    # --- Mostrando os pares amostrados usados na cifra ---
+    print("\n--- Amostragem dos pares da chave publica ---")
+    print("Indices sorteados:", sampleIndices)
+    print("Pares amostrados:")
     for pair in sampledPairs:
-        print(f"[{pair[0]} {pair[1]}] ", end="")
-    print()
+        print(f"[a = {pair[0]}, b = {pair[1]}]")
 
-    # Mostrar como u e v foram calculados
+    # --- Explicando o cálculo de u e v ---
     sampled_A = [pair[0] for pair in sampledPairs]
     sampled_B = [pair[1] for pair in sampledPairs]
 
-    print("\n------Calculation breakdown ------------------------")
+    print("\n--- Calculo de u e v ---")
     print("u = (", " + ".join(map(str, sampled_A)), ") %", q)
     print("v = (", " + ".join(map(str, sampled_B)), f"+ ({q//2} * {message})) %", q)
 
-    # --- Exibição do cálculo ---
-    print("\n------Calculation of 'u' and 'v' -----------------")
-    print("u:\t\t", cipher.U)
-    print("v:\t\t", cipher.V)
+    print("\nResultado:")
+    print("u =\t", cipher.U)
+    print("v =\t", cipher.V)
 
-    # --- Decifrar e mostrar resultado ---
+    # --- Decifrando a mensagem ---
+    print("\n--- Decifrando o ciphertext ---")
     decryptedMsg, res = Decrypt(cipher, secretKey, q)
 
-    print("\n------Calculation of 'res' (v - s*u mod q) ---------")
-    print(f"res = (v - s * u) % q")
-    print(f"    = ({cipher.V} - {secretKey} * {cipher.U}) % {q}")
-    print(f"    = ({cipher.V} - {secretKey * cipher.U}) % {q}")
-    print(f"    = ({cipher.V - secretKey * cipher.U}) % {q}")
-
-    # Ajusta se for negativo, como acontece dentro da função
+    # --- Mostrando os cálculos da operação de decodificação ---
+    print("\n--- Calculo de 'res' (v - s*u mod q) ---")
+    print(f"res = ({cipher.V} - {secretKey} * {cipher.U}) % {q}")
     intermediate = (cipher.V - secretKey * cipher.U)
     if intermediate < 0:
         fixed = intermediate % q
-        print(f"    = ({intermediate}) % {q} = {fixed}  (positive value)")
+        print(f"    = ({intermediate}) % {q} = {fixed}  (ajustado para positivo)")
     else:
-        print(f"    = {intermediate}  (positive value)")
+        print(f"    = {intermediate}  (valor positivo)")
 
-
-    print("\n------Interpreting 'res' to get the message --------")
+    # --- Interpretando o resultado ---
+    print("\n--- Interpretando resultado ---")
     comparison = ">" if res > q / 2 else "<="
     expected_bit = 1 if res > q / 2 else 0
-
-    print(f"Result is: {res} {comparison} q/2 ({q/2}),\nso the MESSAGE IS : {expected_bit}")
-
+    print(f"res = {res} {comparison} q/2 ({q/2}), portanto a MENSAGEM e: {expected_bit}")
 
 
 # --------------------------------------
-# Decrypt: Decifra o bit a partir do texto cifrado
-# --------------------------------------
+# Função para decifrar o bit cifrado
 def Decrypt(cipher, secretKey, q):
     res = (cipher.V - secretKey * cipher.U) % q
     if res < 0:
         res += q
 
-    if res > q / 2:
-        message = 1
-    else:
-        message = 0
-
+    # Se resultado for maior que q/2, interpretamos como bit 1, senão bit 0
+    message = 1 if res > q / 2 else 0
     return message, res
 
 
 # --------------------------------------
-# KeyGen: Gera A, B e erro, usando stepKeyGen para cada par
-# --------------------------------------
+# Função de geração de chave: cria vetores A e B com erros
 def KeyGen(nvals, q, s):
-    Amap = set()
+    Amap = set()         # Para evitar valores repetidos de 'a'
     A, B, eList = [], [], []
 
-    print("\n------Step-by-step Key Generation and error (stepKeyGen)------")
-    
+    print("\n--- Gerando pares (a, b) com erro ---")
     while len(A) < nvals:
         a = random.randint(0, q - 1)
         if a not in Amap:
             Amap.add(a)
-            b, e = stepKeyGen(a, s, q)  
+            b, e = stepKeyGen(a, s, q)
             A.append(a)
             B.append(b)
             eList.append(e)
-            print(f"stepKeyGen -> a = {a}, e = {e}, b = (a*s+e)%q = {b}")
+            print(f"a = {a}, e = {e}, b = (a*s + e) % q = {b}")
 
     return PublicKey(A, B, q), s, eList
 
 
 # --------------------------------------
-# stepKeyGen: Gera b = a*s + e mod q e retorna b e e
-# --------------------------------------
+# Calcula b = a*s + e mod q, e retorna b e o erro usado
 def stepKeyGen(a, s, q):
-    e = random.randint(1, 4)  # Pequeno ruído aleatório
+    e = random.randint(1, 4)  # Gera pequeno erro aleatório
     b = (a * s + e) % q
     return b, e
 
 
 # --------------------------------------
-# Encrypt: Cifra um bit (0 ou 1) usando stepEncrypt
-# --------------------------------------
+# Realiza a cifra do bit, amostrando parte da chave pública
 def Encrypt(message, pk):
     nvals = len(pk.A)
-    sampleSize = nvals // 4
+    sampleSize = nvals // 4  # Usa 1/4 da chave pública
     indices = uniqueSample(nvals - 1, sampleSize)
 
     u, v = 0, 0
     sampledPairs = []
 
-    print("\n------Step-by-step Encryption (stepEncrypt)------")
-
+    print("\n--- Processando cifra com amostragem ---")
     for idx, i in enumerate(indices):
         delta_u, delta_v, pair = stepEncrypt(i, pk)
         u += delta_u
         v += delta_v
         sampledPairs.append(pair)
-        print(f"stepEncrypt {idx + 1} -> index = {i}, A[i] = {pair[0]}, B[i] = {pair[1]}, u += {delta_u}, v += {delta_v}")
+        print(f"{idx + 1}) idx = {i} -> a = {pair[0]}, b = {pair[1]} | u += {delta_u}, v += {delta_v}")
 
     u %= pk.Q
-    v = (v + (pk.Q // 2) * message) % pk.Q
+    v = (v + (pk.Q // 2) * message) % pk.Q  # Adiciona o bit à mensagem de forma escondida
 
     return Ciphertext(u, v), indices, sampledPairs
 
+
 # --------------------------------------
-# stepEncrypt: Retorna os valores de A[i] e B[i] para um índice i
-# --------------------------------------
+# Retorna os valores de A[i] e B[i] usados na cifra
 def stepEncrypt(index, pk):
     a = pk.A[index]
     b = pk.B[index]
     return a, b, (a, b)
 
 
-
 # --------------------------------------
-# Amostragem aleatória sem repetição
-# --------------------------------------
+# Amostragem aleatória sem repetição de índices
 def uniqueSample(max_val, count):
     return random.sample(range(0, max_val + 1), count)
 
 
-# Roda o programa
+# Ponto de entrada do programa
 if __name__ == "__main__":
     main()
