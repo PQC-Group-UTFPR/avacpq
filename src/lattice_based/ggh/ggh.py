@@ -6,6 +6,7 @@ from datetime import datetime
 # Print debug messages?
 debug = True
 
+## Próxima modificação Alteração de cada função para acompanhar a mudança no front-end
 
 def debug_print(message, variable=None):
     """
@@ -214,6 +215,10 @@ class GGH:
 
         return plaintext
 
+def generate_ggh_keys(dimension=2):
+    """Função conveniente para geração de chaves"""
+    ggh = GGH(dimension)
+    return ggh.generate_keys()
 
 # Example usage:
 def get_ggh_data(use_random_plaintext=True, n=2):

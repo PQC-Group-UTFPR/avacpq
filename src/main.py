@@ -72,7 +72,6 @@ def generate_control_card():
         id="control-card",
         className="control-card",  # opcional se quiser estilizar tudo
         children=[
-
             # Div separada para os checklists
             html.Div(
                 className="checklist-container",
@@ -95,10 +94,24 @@ def generate_control_card():
                             'method2': 'LLL',
                             'method3': 'BKZ',
                         },
-                    )
+                    ),
+                    html.Div(
+            id="ggh-dimension-input",
+            children=[
+                html.P("Dimensão do GGH:"),
+                dcc.Input(
+                    id="dimension-input",
+                    type="number",
+                    min=2,
+                    max=100,
+                    value=2,
+                    placeholder="Digite a dimensão (ex: 2, 10, 50)..."
+                )
+            ],
+            style={"display": "none"}  # Inicialmente oculto
+        )
                 ]
             ),
-
             # Div separada para os botões
             html.Div(
                 className="button_control",
