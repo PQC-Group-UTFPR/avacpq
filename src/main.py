@@ -95,24 +95,9 @@ def generate_control_card():
                             'method3': 'BKZ',
                         },
                     ),
-                    html.Div(
-            id="ggh-dimension-input",
-            children=[
-                html.P("Dimensão do GGH:"),
-                dcc.Input(
-                    id="dimension-input",
-                    type="number",
-                    min=2,
-                    max=100,
-                    value=2,
-                    placeholder="Digite a dimensão (ex: 2, 10, 50)..."
-                )
-            ],
-            style={"display": "none"}  # Inicialmente oculto
-        )
                 ]
             ),
-            # Div separada para os botões
+            # buttons
             html.Div(
                 className="button_control",
                 children=[
@@ -126,9 +111,10 @@ def generate_control_card():
 def step_navigation():
     return html.Div([
         html.H4("Passo a Passo", className="steps-title"),
+        dcc.Store(id='keygen-data') , 
         html.Div(id="step-content", className="step-content"),
+        dcc.Store(id='current-step', data={'step': 0}),
         html.Div([
-            html.Button("Anterior", id="btn-prev", n_clicks=0, className="btn-nav"),
             html.Button("Próximo", id="btn-next", n_clicks=0, className="btn-nav")
         ], className="nav-buttons")
     ], className="steps-card")
@@ -137,7 +123,7 @@ def visualization_Results():
     return html.Div([
         html.H4("Visualização", className="vizu-title"),
         # Table or graph here
-        html.Div(id="visualization-results", className="visualization-results"),
+        dcc.Graph(id='visualization-results'),
     ], className="vizu-card")
 
 

@@ -1,4 +1,6 @@
 import numpy as np
+from dash import html, dcc
+import plotly.graph_objects as go
 from numpy.linalg import inv
 import secrets
 from datetime import datetime
@@ -6,7 +8,6 @@ from datetime import datetime
 # Print debug messages?
 debug = True
 
-## Próxima modificação Alteração de cada função para acompanhar a mudança no front-end
 
 def debug_print(message, variable=None):
     """
@@ -129,8 +130,9 @@ class GGH:
         # Compute the public key U
         U = np.dot(B_prime, inv(B))
         debug_print("Public key U:", U)
-
-        return B_prime, U
+        
+        public_key_inverse = inv(U)
+        return B,B_prime, U, public_key_inverse
 
     def generate_error(self, e):
         """
@@ -214,54 +216,107 @@ class GGH:
         plaintext = np.round(plaintext).astype(int)
 
         return plaintext
-
-def generate_ggh_keys(dimension=2):
-    """Função conveniente para geração de chaves"""
-    ggh = GGH(dimension)
-    return ggh.generate_keys()
-
-# Example usage:
-def get_ggh_data(use_random_plaintext=True, n=2):
-    """
-    Gera os dados necessários para o gráfico ou outros usos.
-    
-    Args:
-        use_random_plaintext (bool): Se deve usar texto aleatório ou um valor fixo.
-        n (int): A dimensionalidade do vetor de texto claro.
         
-    Returns:
-        dict: Dados de x e y para o gráfico, contendo plaintext, ciphertext, error e recovered plaintext.
-    """
-    # Inicializa o sistema GGH
-    ggh = GGH(n=n)
 
-    # Gerar o plaintext (mensagem original)
-    if use_random_plaintext:
-        plaintext = generate_random_plaintext(n, ggh.rand)
+def generate_keygen_steps_content(B, B_prime, U, step):
+        
+        B_inv = np.linalg.inv(B)
+        content = []
+
+        if step >= 1:
+            content.append(html.Div([
+                html.H5("Passo 1: Base Aleatória B"),
+                dcc.Markdown(
+                    f"""
+                    B = {np.array2string(B, precision=2, suppress_small=True)}
+                    """,
+                    style={'fontFamily': 'monospace'}
+                )
+            ], className='step-box'))
+
+        if step >= 2:
+            content.append(html.Div([
+                html.H5("Passo 2: Base Privada B'"),
+                dcc.Markdown(
+                    f"""
+                    B' = {np.array2string(B_prime, precision=2, suppress_small=True)}
+                    """,
+                    style={'fontFamily': 'monospace'}
+                )
+            ], className='step-box'))
+
+        if step >= 3:
+            content.append(html.Div([
+                html.H5("Passo 3: Cálculo da Chave Pública U = B' × B⁻¹"),
+                dcc.Markdown(
+                    f"""
+                    U = B' × B⁻¹ = 
+                    {np.array2string(B_prime, precision=2)} × 
+                    {np.array2string(B_inv, precision=2)} = 
+                    {np.array2string(U, precision=2)}
+                    """,
+                    style={'fontFamily': 'monospace'}
+                )
+            ], className='step-box'))
+
+        return html.Div([
+            html.H4("Passo a Passo da Geração de Chaves"),
+            *content 
+        ], style={'marginTop': '20px'})
+    
+def get_ggh_data(dimension, step, ggh_data=None):
+
+    # if data exits
+    if ggh_data:
+        B = np.array(ggh_data['B'])
+        B_prime = np.array(ggh_data['B_prime'])
+        U = np.array(ggh_data['U'])
+        public_key_inverse = np.array(ggh_data['public_key_inverse'])
     else:
-        plaintext = np.array([3, -7])
-    debug_print("Message plaintext", plaintext)
 
-    # Gerar chave pública
-    B_prime, U = ggh.generate_keys()
+        ggh = GGH(dimension)
+        B, B_prime, U, public_key_inverse = ggh.generate_keys()
+        ggh_data = {
+            'dimension': dimension,
+            'B': B.tolist(),
+            'B_prime': B_prime.tolist(),
+            'U': U.tolist(),
+            'public_key_inverse': public_key_inverse.tolist(),
+            'algorithm': 'GGH'
+        }
+        
+    fig = go.Figure()
 
-    # Gerar vetor de erro
-    error = ggh.generate_error(e=1)
+    step_vector_mapping = {
+    1: [{'matrix': B, 'color': 'gray', 'dash': 'dash', 'prefix': 'Base Ruim'}],
+    2: [{'matrix': B_prime, 'color': 'blue', 'dash': None, 'prefix': 'Base Boa'}],
+    3: [{'matrix': U, 'color': 'red', 'dash': 'dot', 'prefix': 'Chave Pública'}],
+    4: [
+        {'matrix': B, 'color': 'gray', 'dash': 'dash', 'prefix': 'Base Ruim'},
+        {'matrix': B_prime, 'color': 'blue', 'dash': None, 'prefix': 'Base Boa'},
+        {'matrix': U, 'color': 'red', 'dash': 'dot', 'prefix': 'Chave Pública'}
+    ]
+}
+    vector_configs = step_vector_mapping.get(step, [])
 
-    # Criptografar o plaintext
-    ciphertext = ggh.encrypt(U, plaintext, error)
+    for config in vector_configs:
+        for i in range(dimension):
+            fig.add_trace(go.Scatter(
+                x=[0, config['matrix'][i, 0]],
+                y=[0, config['matrix'][i, 1]],
+                mode='lines+markers',
+                line=dict(color=config['color'], dash=config['dash']),
+                marker=dict(color=config['color']),
+                name=config['prefix'],
+                showlegend=(i == 0)
+            ))
 
-    # Descriptografar o ciphertext
-    public_key_inverse = inv(U)
-    decrypted_plaintext = ggh.decrypt(public_key_inverse, ciphertext)
-    rounded_decrypted_plaintext = ggh.babai_rounding(decrypted_plaintext, error, inv(U))
-    recovered_plaintext = ggh.recover_plaintext(rounded_decrypted_plaintext, U)
-    debug_print("Recovered plaintext:", recovered_plaintext)
+    fig.update_layout(
+        title='Visualização das Bases e Chaves GGH',
+        xaxis_title='X',
+        yaxis_title='Y',
+        template="plotly_dark"
+    )
+    steps_content = generate_keygen_steps_content(B, B_prime, U, step)
 
-    # Retornar os dados necessários para o gráfico
-    return {
-        "plaintext": plaintext,
-        "ciphertext": ciphertext,
-        "error": error,
-        "recovered_plaintext": recovered_plaintext
-    }
+    return fig, steps_content, ggh_data
