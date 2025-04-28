@@ -218,6 +218,28 @@ class GGH:
         return plaintext
         
 
+def initGGH(ggh_data, dimension):
+    ggh = GGH(dimension)
+    B, B_prime, U, public_key_inverse = ggh.generate_keys()
+    error = ggh.generate_error(e=1)
+    plaintext = generate_random_plaintext(dimension, ggh.rand)
+    ciphertext = ggh.encrypt(U, plaintext, error) 
+    decrypt = ggh.decrypt(public_key_inverse, ciphertext)
+
+    ggh_data = {
+        'dimension': dimension,
+        'B': B.tolist(),
+        'B_prime': B_prime.tolist(),
+        'U': U.tolist(),
+        'public_key_inverse': public_key_inverse.tolist(),
+        'plaintext': plaintext.tolist(),
+        'error': error.tolist(),
+        'ciphertext': ciphertext.tolist(),
+        'decrypt': decrypt.tolist(),
+        'algorithm': 'GGH'
+    }
+    return ggh_data
+
 def generate_keygen_steps_content(B, B_prime, U, step):
         
         B_inv = np.linalg.inv(B)
@@ -264,59 +286,136 @@ def generate_keygen_steps_content(B, B_prime, U, step):
             *content 
         ], style={'marginTop': '20px'})
     
-def get_ggh_data(dimension, step, ggh_data=None):
+def get_ggh_data(step, ggh_data):
 
-    # if data exits
-    if ggh_data:
         B = np.array(ggh_data['B'])
         B_prime = np.array(ggh_data['B_prime'])
         U = np.array(ggh_data['U'])
         public_key_inverse = np.array(ggh_data['public_key_inverse'])
-    else:
-
-        ggh = GGH(dimension)
-        B, B_prime, U, public_key_inverse = ggh.generate_keys()
-        ggh_data = {
-            'dimension': dimension,
-            'B': B.tolist(),
-            'B_prime': B_prime.tolist(),
-            'U': U.tolist(),
-            'public_key_inverse': public_key_inverse.tolist(),
-            'algorithm': 'GGH'
-        }
+        dimension = np.array(ggh_data['dimension'])
         
-    fig = go.Figure()
+        fig = go.Figure()
 
-    step_vector_mapping = {
-    1: [{'matrix': B, 'color': 'gray', 'dash': 'dash', 'prefix': 'Base Ruim'}],
-    2: [{'matrix': B_prime, 'color': 'blue', 'dash': None, 'prefix': 'Base Boa'}],
-    3: [{'matrix': U, 'color': 'red', 'dash': 'dot', 'prefix': 'Chave Pública'}],
-    4: [
-        {'matrix': B, 'color': 'gray', 'dash': 'dash', 'prefix': 'Base Ruim'},
-        {'matrix': B_prime, 'color': 'blue', 'dash': None, 'prefix': 'Base Boa'},
-        {'matrix': U, 'color': 'red', 'dash': 'dot', 'prefix': 'Chave Pública'}
+        step_vector_mapping = {
+        1: [{'matrix': B, 'color': 'gray', 'dash': 'dash', 'prefix': 'Base Ruim'}],
+        2: [{'matrix': B_prime, 'color': 'blue', 'dash': None, 'prefix': 'Base Boa'}],
+        3: [{'matrix': U, 'color': 'red', 'dash': 'dot', 'prefix': 'Chave Pública'}],
+        4: [
+            {'matrix': B, 'color': 'gray', 'dash': 'dash', 'prefix': 'Base Ruim'},
+            {'matrix': B_prime, 'color': 'blue', 'dash': None, 'prefix': 'Base Boa'},
+            {'matrix': U, 'color': 'red', 'dash': 'dot', 'prefix': 'Chave Pública'}
+        ]
+    }
+        vector_configs = step_vector_mapping.get(step, [])
+
+        for config in vector_configs:
+            for i in range(dimension):
+                fig.add_trace(go.Scatter(
+                    x=[0, config['matrix'][i, 0]],
+                    y=[0, config['matrix'][i, 1]],
+                    mode='lines+markers',
+                    line=dict(color=config['color'], dash=config['dash']),
+                    marker=dict(color=config['color']),
+                    name=config['prefix'],
+                    showlegend=(i == 0)
+                ))
+
+        fig.update_layout(
+            title='Visualização das Bases e Chaves GGH',
+            xaxis_title='X',
+            yaxis_title='Y',
+            template="plotly_dark"
+        )
+        steps_content = generate_keygen_steps_content(B, B_prime, U, step)
+
+        return fig, steps_content, ggh_data
+
+def encrypt_step(ggh_data, step):
+    plaintext = np.array(ggh_data['plaintext'])
+    error = np.array(ggh_data['error'])
+    U = np.array(ggh_data['U'])
+    ciphertext = np.array(ggh_data['ciphertext'])
+
+    content = []
+
+    if step >= 5:
+        content.append(html.Div([
+            html.H5("Passo 1: Geração da Mensagem Secreta (Plaintext)"),
+            dcc.Markdown(
+                f"""
+                plaintext = {np.array2string(plaintext, precision=2, suppress_small=True)}
+                """,
+                style={'fontFamily': 'monospace'}
+            )
+        ], className='step-box'))
+
+    if step >= 6:
+        content.append(html.Div([
+            html.H5("Passo 2: Geração do Erro Pequeno (Error)"),
+            dcc.Markdown(
+                f"""
+                error = {np.array2string(error, precision=2, suppress_small=True)}
+                """,
+                style={'fontFamily': 'monospace'}
+            )
+        ], className='step-box'))
+
+    if step >= 7:
+        content.append(html.Div([
+            html.H5("Passo 3: Cálculo do Ciphertext"),
+            dcc.Markdown(
+                f"""
+                ciphertext = plaintext × U + error  
+                           = {np.array2string(plaintext, precision=2)} × 
+                             {np.array2string(U, precision=2)} + 
+                             {np.array2string(error, precision=2)}  
+                           = {np.array2string(ciphertext, precision=2)}
+                """,
+                style={'fontFamily': 'monospace'}
+            )
+        ], className='step-box'))
+        
+    return html.Div([
+        html.H4("Passo a Passo da Criptografia GGH"),
+        *content], style={'marginTop': '30px'})
+
+
+def ggh_encrypt(ggh_data, step):
+     fig = go.Figure()
+     
+     step_vector_mapping = {
+    5: [
+        {'vector': np.dot(ggh_data['plaintext'], ggh_data['U']), 'color': 'green', 'dash': None, 'prefix': 'plaintext × U'},
+    ],
+    6: [
+        {'vector': np.dot(ggh_data['plaintext'], ggh_data['U']), 'color': 'green', 'dash': None, 'prefix': 'plaintext × U'},
+        {'vector': ggh_data['error'], 'color': 'orange', 'dash': 'dash', 'prefix': 'Erro'},
+    ],
+    7: [
+        {'vector': np.dot(ggh_data['plaintext'], ggh_data['U']), 'color': 'green', 'dash': None, 'prefix': 'plaintext × U'},
+        {'vector': ggh_data['error'], 'color': 'orange', 'dash': 'dash', 'prefix': 'Erro'},
+        {'vector': ggh_data['ciphertext'], 'color': 'yellow', 'dash': None, 'prefix': 'Ciphertext'},
     ]
 }
-    vector_configs = step_vector_mapping.get(step, [])
+     vector_configs = step_vector_mapping.get(step, [])
 
-    for config in vector_configs:
-        for i in range(dimension):
+     for config in vector_configs:
+            vec = config['vector']
             fig.add_trace(go.Scatter(
-                x=[0, config['matrix'][i, 0]],
-                y=[0, config['matrix'][i, 1]],
+                x=[0, vec[0]],
+                y=[0, vec[1]],
                 mode='lines+markers',
                 line=dict(color=config['color'], dash=config['dash']),
                 marker=dict(color=config['color']),
-                name=config['prefix'],
-                showlegend=(i == 0)
-            ))
+                name=config['prefix']
+            ))       
+     step_content = encrypt_step(ggh_data, step)
 
-    fig.update_layout(
-        title='Visualização das Bases e Chaves GGH',
-        xaxis_title='X',
-        yaxis_title='Y',
-        template="plotly_dark"
-    )
-    steps_content = generate_keygen_steps_content(B, B_prime, U, step)
+     return fig, step_content, ggh_data
 
-    return fig, steps_content, ggh_data
+def ggh_decrypt(ggh_data, step):
+    print("Próximo Passo a desenvolver")
+
+
+   
+
