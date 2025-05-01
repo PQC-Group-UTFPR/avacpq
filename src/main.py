@@ -79,11 +79,12 @@ def generate_control_card():
                     html.P("Algoritmos:"),
                     dcc.Checklist(
                         id="checklist-Algorithms",
-                        options={
-                            'LWE (1 bit)': 'LWE (1 bit)',
-                            'GGH': 'GGH',
-                            'Alkaline': 'Alkaline',
-                        },
+                       options = [
+                        {'label': 'LWE (1 bit)', 'value': 'LWE'},
+                        {'label': 'GGH', 'value': 'GGH'},
+                        {'label': 'Alkaline', 'value': 'Alkaline'}
+                        ]
+
                     ),
                     html.Br(),
                     html.P("Métodos de Criptoanálise:"),
