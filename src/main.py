@@ -1,4 +1,5 @@
 from dash import Dash, html, dcc
+import plotly.graph_objects as go
 from callbacks import blank_figure
 from callbacks import get_callbacks
 
@@ -19,8 +20,6 @@ app = Dash(
 )
 app.title = "AVACPQ: Artifícios Visuais para Aprendizado de Criptografia Pós-Quântica"
 app.config.suppress_callback_exceptions = True
-
-
 
 
 get_callbacks(app)
@@ -70,7 +69,7 @@ def generate_control_card():
     """
     return html.Div(
         id="control-card",
-        className="control-card",  # opcional se quiser estilizar tudo
+        className="control-card",  
         children=[
             # Div separada para os checklists
             html.Div(
@@ -111,12 +110,12 @@ def generate_control_card():
 
 def step_navigation():
     return html.Div([
-        html.H4("Passo a Passo", className="steps-title"),
+        
         dcc.Store(id='keygen-data') , 
         html.Div(id="step-content", className="step-content"),
         dcc.Store(id='current-step', data={'step': 0}),
         html.Div([
-            html.Button("Próximo", id="btn-next", n_clicks=0, className="btn-nav")
+            html.Button("Próximo", id="btn-next", n_clicks=0, className="btn-nav", disabled=True)
         ], className="nav-buttons")
     ], className="steps-card")
 
@@ -124,9 +123,9 @@ def visualization_Results():
     return html.Div([
         html.H4("Visualização", className="vizu-title"),
         # Table or graph here
-        dcc.Graph(id='visualization-results'),
+        dcc.Graph(id='visualization-results',
+        figure=go.Figure(layout=go.Layout(template='plotly_dark'))),
     ], className="vizu-card")
-
 
 """
 ---------------------------------------------------------------------------------------
