@@ -246,18 +246,19 @@ def generate_keygen_steps_content(B, B_prime, U, step):
         content = []
 
         if step >= 1:
-            content.append(html.Div([
+            content.insert(0,html.Div([
                 html.H5("Passo 1: Base Aleatória B"),
                 html.P(
                     f"""
-                    B = {np.array2string(B, precision=2, suppress_small=True)}
+                    B = {np.array2string(B, precision=2, suppress_small=True,separator=', ')}
                     """,
-                    style={'fontFamily': 'monospace', 'text-align': 'left'}
-                )
+                    style={'fontFamily': 'monospace', 
+                           'text-align': 'left'}
+                        )
             ], className='step-box'))
 
         if step >= 2:
-            content.append(html.Div([
+            content.insert(0,html.Div([
                 html.H5("Passo 2: Base Privada B'"),
                 html.P(
                     f"""
@@ -269,7 +270,7 @@ def generate_keygen_steps_content(B, B_prime, U, step):
 
         if step >= 3:
             B_inv = np.linalg.inv(B)
-            content.append(html.Div([
+            content.insert(0,html.Div([
                 html.H5("Passo 3: Cálculo da Chave Pública U = B' × B⁻¹"),
                 html.P([
                     "U = B' × B⁻¹ =",html.Br(), 
@@ -292,7 +293,6 @@ def get_ggh_data(step, ggh_data):
         B = np.array(ggh_data['B'])
         B_prime = np.array(ggh_data['B_prime'])
         U = np.array(ggh_data['U'])
-        public_key_inverse = np.array(ggh_data['public_key_inverse'])
         dimension = np.array(ggh_data['dimension'])
         
         fig = go.Figure()
@@ -311,22 +311,38 @@ def get_ggh_data(step, ggh_data):
 
         for config in vector_configs:
             for i in range(dimension):
+                vec = config['matrix'][i]
                 fig.add_trace(go.Scatter(
-                    x=[0, config['matrix'][i, 0]],
-                    y=[0, config['matrix'][i, 1]],
-                    mode='lines+markers',
+                    x=[0,vec[0]],
+                    y=[0, vec[1]],
+                    mode='lines',
                     line=dict(color=config['color'], dash=config['dash']),
-                    marker=dict(color=config['color']),
                     name=config['prefix'],
                     showlegend=(i == 0)
                 ))
+                fig.add_annotation(
+                    x=vec[0],
+                    y=vec[1],
+                    ax=0,
+                    ay=0,
+                    xref="x",
+                    yref="y",
+                    axref="x",
+                    ayref="y",
+                    showarrow=True,
+                    arrowhead=3,           
+                    arrowcolor=config['color'],
+                    arrowsize=1,           
+                    arrowwidth=2,
+                )
 
         fig.update_layout(
-            title='Visualização das Bases e Chaves GGH',
+            title='Bases e Chaves GGH',
             xaxis_title='X',
             yaxis_title='Y',
-            template="plotly_dark"
-        )
+            template = 'plotly_white' 
+            )
+
         steps_content = generate_keygen_steps_content(B, B_prime, U, step)
 
         return fig, steps_content
@@ -340,7 +356,7 @@ def encrypt_step(ggh_data, step):
     content = []
 
     if step >= 5:
-        content.append(html.Div([
+        content.insert(0,html.Div([
             html.H5("Passo 1: Geração da Mensagem Secreta (Plaintext)"),
             html.P(
                 f"""
@@ -351,7 +367,7 @@ def encrypt_step(ggh_data, step):
         ], className='step-box'))
 
     if step >= 6:
-        content.append(html.Div([
+        content.insert(0,html.Div([
             html.H5("Passo 2: Geração do Erro Pequeno (Error)"),
             html.P(
                 f"""
@@ -362,11 +378,11 @@ def encrypt_step(ggh_data, step):
         ], className='step-box'))
 
     if step >= 7:
-        content.append(html.Div([
+        content.insert(0,html.Div([
             html.H5("Passo 3: Cálculo do Ciphertext"),
+            html.P("ciphertext = plaintext × U + error = ",style={'fontWeight': 'bold'}),
             html.P([
-                "ciphertext = plaintext × U + error = ",html.Br(),  
-                             f"{np.array2string(plaintext, precision=2)}× " 
+                             f"{np.array2string(plaintext, precision=2)} × " 
                              f"{np.array2string(U, precision=2)} + " 
                              f"{np.array2string(error, precision=2)}",html.Br(),   
                              f"= {np.array2string(ciphertext, precision=2)}"
@@ -407,11 +423,33 @@ def ggh_encrypt(ggh_data, step):
             fig.add_trace(go.Scatter(
                 x=[0, vec[0]],
                 y=[0, vec[1]],
-                mode='lines+markers',
+                mode='lines',
                 line=dict(color=config['color'], dash=config['dash']),
                 marker=dict(color=config['color']),
                 name=config['prefix']
-            ))       
+            ))     
+            fig.add_annotation(
+            x=vec[0],
+            y=vec[1],
+            ax=0,
+            ay=0,
+            xref="x",
+            yref="y",
+            axref="x",
+            ayref="y",
+            showarrow=True,
+            arrowhead=3,           
+            arrowcolor=config['color'],
+            arrowsize=1,           
+            arrowwidth=2
+        ) 
+
+     fig.update_layout(
+            title='Encriptação GGH',
+            xaxis_title='X',
+            yaxis_title='Y',
+            template = 'plotly_white'
+        ) 
      step_content = encrypt_step(ggh_data, step)
 
      return fig, step_content
@@ -426,82 +464,81 @@ def decrypt_step(ggh_data, step):
     content = []
     
     if step >= 8:
-        content.append(html.Div([
+        content.insert(0,html.Div([
             html.H5("Passo 1: Inversa da Chave Pública (U⁻¹)"),
-                html.P([
-                     html.H5("Public Key Inverse"),
-                    f"U⁻¹ = {np.array2string(public_key_inverse, precision=2, suppress_small=True)}"]
+                html.P("Public Key Inverse",style={'fontWeight': 'bold'}),
+
+                html.P(f"U⁻¹ = {np.array2string(public_key_inverse, precision=2, suppress_small=True)}"
                 ,style={'fontFamily': 'monospace','textAlign': 'left'})
     ], className='step-box'))
 
     if step >= 9:
         decrypted_plaintext = np.dot(ciphertext, public_key_inverse)
-        content.append(html.Div([
-                            html.H5("Passo 2: Multiplicação do ciphertext pela inversa da chave pública"),
-                            html.P([
-                                
-                                    f"ciphertext = {np.array2string(ciphertext, precision=2)}",html.Br(),
-                                    f"U⁻¹ = {np.array2string(public_key_inverse, precision=2)}",html.Br(),
-                                    html.H5("Decrypted Plaintext"),
-                                    f"ciphertext × U⁻¹ = {np.array2string(decrypted_plaintext, precision=2)}"
-                                    ],style={'fontFamily': 'monospace','textAlign': 'left'}
-                            )
-                        ], className="step-box"))
+        content.insert(0,
+    html.Div([
+        html.H5("Passo 2: Multiplicação do ciphertext pela inversa da chave pública"),
 
-    if step >= 10:
-        rounded_decrypted_plaintext = decrypted_plaintext - np.dot(error, public_key_inverse)
-        content.append(html.Div([
-            html.H5("Passo 3: Arredondamento de Babai (Remoção do Erro)"),
+        html.P([
+            f"ciphertext = {np.array2string(ciphertext, precision=2)}", html.Br(),
+            f"U⁻¹ = {np.array2string(public_key_inverse, precision=2)}"
+        ], style={'fontFamily': 'monospace', 'textAlign': 'left'}),
 
-            html.Div([
-                html.H6("Multiplicação do erro pela inversa da chave pública"),
-                html.Pre(
-                    f"error × U⁻¹ = {np.array2string(error, precision=2)} ×\n"
-                    f"             {np.array2string(public_key_inverse, precision=2)}"
-                )
-            ], className="substep-box"),
+        html.P("Decrypted Plaintext", style={'fontWeight': 'bold'}),
 
-            html.Div([
-                html.H6("Subtração do erro decodificado do plaintext inicial"),
-                html.P(
-                    f"rounded_decrypted_plaintext = decrypted_plaintext - (error × U⁻¹)\n"
-                    f"                           = {np.array2string(decrypted_plaintext, precision=2)} -\n"
-                    f"                             <resultado acima>\n"
-                    f"                           = {np.array2string(rounded_decrypted_plaintext, precision=2)}"
-                )
-            ], className="substep-box")
+        html.P(
+            f"ciphertext × U⁻¹ = {np.array2string(decrypted_plaintext, precision=2)}",
+            style={'fontFamily': 'monospace', 'textAlign': 'left'}
+        )
+    ], className="step-box")
+)
 
-        ], className='step-box'))
+
+        if step >= 10:
+            error_component = np.dot(error, public_key_inverse)
+            rounded_decrypted_plaintext = decrypted_plaintext - error_component
+            content.insert(0,html.Div([
+                html.H5("Passo 3: Arredondamento de Babai (Remoção do Erro)"),
+                html.P("Multiplicação do erro pela inversa da chave pública",style={'fontWeight': 'bold'}),
+                html.Pre([
+                    f"error × U⁻¹ =", html.Br(),
+                    f"{np.array2string(error, precision=2)} × {np.array2string(public_key_inverse, precision=2)} =", html.Br(),
+                    f"{np.array2string(error_component, precision=2)}"
+                ], style={'fontFamily': 'monospace', 'textAlign': 'left'}),
+
+                html.P("Subtração do erro decodificado do plaintext aproximado",style={'fontWeight': 'bold'}),
+                html.Pre([
+                    f"decrypted_plaintext - (error × U⁻¹) =", html.Br(),
+                    f"{np.array2string(decrypted_plaintext, precision=2)} - {np.array2string(error_component, precision=2)} =", html.Br(),
+                    f"{np.array2string(rounded_decrypted_plaintext, precision=2)}"
+                ], style={'fontFamily': 'monospace', 'textAlign': 'left'})
+            ], className='step-box'))
+
 
     if step >= 11:
         temp = np.dot(rounded_decrypted_plaintext, public_key_inverse)
         recovered_plaintext = np.dot(temp, U)
         recovered_plaintext = np.round(recovered_plaintext).astype(int)
 
-        content.append(html.Div([
+        content.insert(0,html.Div([
             html.H5("Passo 4: Recuperação da Mensagem Original"),
 
-            html.Div([
-                html.H6("4.1 Multiplicar pela inversa da chave pública"),
-                html.P(
-                    f"temp = rounded_decrypted_plaintext × U⁻¹\n"
-                    f"     = {np.array2string(rounded_decrypted_plaintext, precision=2)} ×\n"
-                    f"       {np.array2string(public_key_inverse, precision=2)}\n"
-                    f"     = {np.array2string(temp, precision=2)}"
-                )
-            ], className="substep-box"),
-
-            html.Div([
-                html.H6("4.2 Multiplicar por U e arredondar"),
-                html.P(
-                    f"plaintext = round(temp × U)\n"
-                    f"         = round({np.array2string(temp, precision=2)} ×\n"
-                    f"                 {np.array2string(U, precision=2)})\n"
-                    f"         = {np.array2string(recovered_plaintext, precision=2)}"
-                )
-            ], className="substep-box")
-
-        ], className='step-box'))
+                
+                html.P("4.1 Multiplicar pela inversa da chave pública",style={'fontWeight': 'bold'}),
+                html.P([
+                    f"temp = rounded_decrypted_plaintext × U⁻¹",html.Br(),
+                    f"     = {np.array2string(rounded_decrypted_plaintext, precision=2)} ×"
+                    f"       {np.array2string(public_key_inverse, precision=2)}",html.Br(),
+                    f"     = {np.array2string(temp, precision=2)}"]
+                    ,style={'fontFamily': 'monospace','textAlign': 'left'}
+                ),
+                html.P("4.2 Multiplicar por U e arredondar",style={'fontWeight': 'bold'}),
+                html.P([
+                    f"plaintext = round(temp × U)",html.Br(),
+                    f"         = round({np.array2string(temp, precision=2)} ×"
+                    f"                 {np.array2string(U, precision=2)})",html.Br(),
+                    f"         = {np.array2string(recovered_plaintext, precision=2)}"]
+                    ,style={'fontFamily': 'monospace','textAlign': 'left'}
+                )], className='step-box'))
 
     return html.Div([
         html.H4("Passo a Passo", className="steps-title"),
@@ -534,34 +571,47 @@ def ggh_decrypt(ggh_data, step):
         ],
         11: [
             {'vector': ggh_data['ciphertext'], 'color': 'yellow', 'dash': None, 'prefix': 'Ciphertext'},
+            {'vector': decrypted_plaintext, 'color': 'purple', 'dash': None, 'prefix': 'Decrypted'},
+            {'vector': rounded_decrypted_plaintext, 'color': 'blue', 'dash': None, 'prefix': 'Rounded'},
             {'vector': recovered_plaintext, 'color': 'green', 'dash': None, 'prefix': 'Recovered'},
-            {'vector': ggh_data['plaintext'], 'color': 'red', 'dash': None, 'prefix': 'Original'},
         ]
     }
-    
     vector_configs = step_vector_mapping.get(step, [])
-    
+
     for config in vector_configs:
         vec = config['vector']
         fig.add_trace(go.Scatter(
             x=[0, vec[0]],
             y=[0, vec[1]],
-            mode='lines+markers',
+            mode='lines',
             line=dict(color=config['color'], dash=config['dash']),
             marker=dict(color=config['color']),
             name=config['prefix']
         ))
-    
-    
+        fig.add_annotation(
+            x=vec[0],
+            y=vec[1],
+            ax=0,
+            ay=0,
+            xref="x",
+            yref="y",
+            axref="x",
+            ayref="y",
+            showarrow=True,
+            arrowhead=3,           
+            arrowcolor=config['color'],
+            arrowsize=1,           
+            arrowwidth=2,
+        )
+        
     fig.update_layout(
-        title="Visualização da Decriptografia GGH",
+        title="Decriptografia GGH",
         xaxis_title="X",
         yaxis_title="Y",
-        template = "plotly_dark",
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="right", x=1),
-        margin=dict(l=0, r=0, t=30, b=0)
+        template = 'plotly_white'
     )
-    
+
+    disabled = True if step == 11 else False
     step_content = decrypt_step(ggh_data, step)
     
     return fig, step_content

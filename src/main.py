@@ -102,6 +102,9 @@ def generate_control_card():
                 className="button_control",
                 children=[
                     html.Button(id="start", children="Iniciar", n_clicks=0),
+                    html.Div([
+                    html.Button("Próximo", id="btn-next", n_clicks=0, className="btn-nav", disabled=True)
+                    ], className="nav-buttons"),
                     html.Button(id="reset-btn", children="Reset", n_clicks=0)
                 ]
             )
@@ -113,19 +116,18 @@ def step_navigation():
         
         dcc.Store(id='keygen-data') , 
         html.Div(id="step-content", className="step-content"),
-        dcc.Store(id='current-step', data={'step': 0}),
-        html.Div([
-            html.Button("Próximo", id="btn-next", n_clicks=0, className="btn-nav", disabled=True)
-        ], className="nav-buttons")
+        
+        dcc.Store(id='current-step', data={'step': 0})
+        
     ], className="steps-card")
 
 def visualization_Results():
     return html.Div([
         html.H4("Visualização", className="vizu-title"),
         # Table or graph here
-        dcc.Graph(id='visualization-results',
-        figure=go.Figure(layout=go.Layout(template='plotly_dark'))),
-    ], className="vizu-card")
+        dcc.Graph(id="visualization-results",
+                    figure=go.Figure(layout=go.Layout(template="plotly_white")), style={'display':'None'})
+        ], className="vizu-card")
 
 """
 ---------------------------------------------------------------------------------------

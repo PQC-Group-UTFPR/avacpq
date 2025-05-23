@@ -8,19 +8,22 @@ import json
 
 def blank_figure():
     fig = go.Figure(go.Scatter(x=[], y=[]))
-    fig.update_layout(template="plotly_dark")
+    fig.update_layout(template="none", 
+            paper_bgcolor="white", 
+            plot_bgcolor="white")
     return fig
 
 def get_callbacks(app):
     # Callback para passo qualquer processo
     @app.callback(
-        [Output('visualization-results', 'figure',allow_duplicate=True),
-         Output('keygen-data', 'data'), 
-         Output('btn-next', 'disabled')],
+        [Output('visualization-results', 'style'),
+         Output('keygen-data', 'data', allow_duplicate=True), 
+         Output('btn-next', 'disabled', allow_duplicate=True)],
          Input('start', 'n_clicks'),
         [State('checklist-Algorithms', 'value'),
          State('keygen-data', 'data')],
-        prevent_initial_call=True
+        prevent_initial_call=True,
+        allow_duplicate = True
     )
     def generate_keys(button_start, algorithm_selected, dados_carry):
         if button_start is None or not algorithm_selected:
@@ -31,23 +34,26 @@ def get_callbacks(app):
         if last_selected == 'GGH':
             if dados_carry is None:
                 dados_carry = initGGH(dados_carry, 2)
-                return blank_figure(), json.dumps(dados_carry), False
+                style = {"display": "block"}
+                return style, json.dumps(dados_carry), False
 
         elif last_selected == 'LWE':
-            return blank_figure(), json.dumps({}), True
+            return {"display": "none"}, json.dumps({}), True
         elif last_selected == 'Alkaline':
-            return blank_figure(), json.dumps({})
-        return blank_figure(), json.dumps({'error': 'Algoritmo não reconhecido'}), True
+            return {"display": "none"}, json.dumps({}), True
+        return {"display": "none"}, json.dumps({'error': 'Algoritmo não reconhecido'}), True
 
         
     @app.callback(
-        [Output('visualization-results', 'figure'),
-         Output('step-content', 'children')],
+         [Output('visualization-results', 'figure', allow_duplicate=True),
+         Output('step-content', 'children', allow_duplicate=True)],
          Input('btn-next', 'n_clicks'),
          State('keygen-data', 'data'),
         prevent_initial_call=True
         )
     def Process_sign(step,dados_carry):
+            if dados_carry is None:
+                raise PreventUpdate
             if isinstance(dados_carry, str):
                 dados_carry = json.loads(dados_carry)
 
@@ -64,5 +70,24 @@ def get_callbacks(app):
             elif algorithm == 'Alkaline':
                 return blank_figure(), html.Div("Alkaline selecionado")
             return blank_figure(), html.Div("Algoritmo desconhecido")
+    
+    @app.callback(
+    [Output('visualization-results', 'style', allow_duplicate=True),
+     Output('step-content', 'children', allow_duplicate=True),
+     Output('keygen-data', 'data', allow_duplicate=True),
+     Output('btn-next', 'n_clicks', allow_duplicate=True),
+     Output('btn-next', 'disabled'),
+     Output('checklist-Algorithms', 'value') 
+     ],
+    Input('reset-btn', 'n_clicks'),
+    prevent_initial_call=True
+    )
+    def ResetSystem(clicks):
+        if clicks:            
+            return {"display": "none"}, '', None, 0, True,[]
+
+                
+    
+ 
 
             

@@ -51,7 +51,7 @@
 }
 
 .column {
-    padding: 20px;
+    padding: 10px;
     border-radius: 8px;
 }
 
@@ -61,6 +61,7 @@
     display: flex;
     flex-direction: column;
     max-width: 250px;
+    max-height: 400px;
     flex: 0.5;
 }
 
@@ -69,24 +70,61 @@
     flex-direction: column;
     justify-content: flex-start;
     height: 100%;
+    background-color: #f9f9f9;
+    margin-top: 20px;
+    padding: 10px;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.dash-checklist label {
+    display: block;
+    margin-bottom: 6px;
+    padding-left: 4px;
+    font-size: 15px;
+    color: #444;
 }
 
 .button_control {
     display: flex;
     gap: 15px;
-    margin-top: auto;
+    margin-top: 10px;
     padding-top: 20px;
+}
+
+.button_control button {
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.button_control button:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.button_control button:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+.nav-buttons {
+    display: flex;
+    align-items: center;
 }
 
 .checklist-container {
     margin-bottom: 20px;
 }
 
-
-
 /* Section vizualization column */
 .vizu-column {
-    max-width: 500px;
+    max-width: 450px;
     flex: 2;
 }
 
@@ -111,12 +149,35 @@
 
 .step-box {
     border-left: 5px solid #007bff;
-    padding: 5px 10px;
-    border-radius: 8px;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-    animation: fadeInUp 1s ease forwards;
+    background-color: #ffffff;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    animation: fadeInUp 0.5s ease forwards;
 }
+
+.step-box h5 {
+    margin-top: 10px;
+    margin-bottom: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    color: #222;
+}
+
+.step-box p {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #333;
+}
+
+.step-box::before {
+    content: "✔";
+    font-size: 18px;
+    color: #007bff;
+    margin-right: 10px;
+}
+
 
 @keyframes fadeInUp {
     from {
@@ -130,12 +191,21 @@
     }
 }
 
-.nav-buttons {
-    bottom: 25px;
-    left: 0;
-    right: 0;
-    display: flex;
-    justify-content: flex-start;
-    gap: 15px;
-    padding: padding;
+
+/* Section vizualization Graph */
+.vizu-card {
+    background-color: #ffffff;
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    margin-top: 20px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+.vizu-title {
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: #222222;
+    margin-top: 0;
 }
