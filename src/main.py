@@ -83,7 +83,6 @@ def generate_control_card():
                         {'label': 'GGH', 'value': 'GGH'},
                         {'label': 'Alkaline', 'value': 'Alkaline'}
                         ]
-
                     ),
                     html.Br(),
                     html.P("Métodos de Criptoanálise:"),
@@ -107,7 +106,8 @@ def generate_control_card():
                     ], className="nav-buttons"),
                     html.Button(id="reset-btn", children="Reset", n_clicks=0)
                 ]
-            )
+            ),
+            html.Div(id='dimension-input-container',className='dimension-input-container')
         ],
     )
 
@@ -125,8 +125,7 @@ def visualization_Results():
     return html.Div([
         html.H4("Visualização", className="vizu-title"),
         # Table or graph here
-        dcc.Graph(id="visualization-results",
-                    figure=go.Figure(layout=go.Layout(template="plotly_white")), style={'display':'None'})
+        html.Div(id="visualization-results")
         ], className="vizu-card")
 
 """
