@@ -1,4 +1,4 @@
-from dash import html, State, dcc
+from dash import html, State, dcc, callback, no_update
 import plotly.graph_objects as go
 import numpy as np
 from dash.dependencies import Input, Output
@@ -10,8 +10,8 @@ import json
 def blank_figure():
     fig = go.Figure(go.Scatter(x=[], y=[]))
     fig.update_layout(template="none", 
-            paper_bgcolor="white", 
-            plot_bgcolor="white")
+            paper_bgcolor="black", 
+            plot_bgcolor="black",)
     return fig
 
 def get_callbacks(app):
@@ -110,6 +110,19 @@ def get_callbacks(app):
     def ResetSystem(clicks):
         if clicks:            
             return {"display": "none"}, '', None, 0, True,False,[]
+
+#     # Login button callback
+#     @app.callback(
+#     Output('login-button-container', 'children'),
+#     Input('login-button', 'n_clicks'),
+#     prevent_initial_call=True
+# )
+#     def login_button_click(n_clicks):
+#         if n_clicks and n_clicks > 0:
+#             return dcc.Location(pathname='/login', id='login-redirect')
+        
+#         return no_update
+        
 
                 
     

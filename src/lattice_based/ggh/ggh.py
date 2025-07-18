@@ -303,7 +303,7 @@ def plot_vectors(step_vector_mapping, step, dimension, is_matrix=True, title="")
         title=title,
         xaxis_title="X",
         yaxis_title="Y",
-        template='plotly_white'
+        template='plotly_dark'
     )
     return fig
 # Function to generate the content for the key generation steps
@@ -347,11 +347,10 @@ def generate_keygen_steps_content(B, B_prime, U, step):
                 )
             ], className='step-box'))
 
-        return html.Div([
-            html.H4("Passo a Passo", className="steps-title"),
+        return html.Div([html.H3("Passo a Passo", className="algorithm-title"),
             html.H4("Geração de Chaves"),
-            *content 
-        ], style={'marginTop': '5px'})
+            *content] 
+        , style={'marginTop': '5px', 'color': 'white', 'fontWeight': 'bold'})
 
 def matrix_to_table(matrix, name):
     columns = [{"name": f"Dimensão {i+1}", "id": str(i)} for i in range(matrix.shape[1])]
@@ -443,11 +442,9 @@ def encrypt_step(ggh_data, step):
             )
         ], className='step-box'))
         
-    return html.Div([
-        
-        html.H4("Passo a Passo", className="steps-title"),
+    return html.Div([html.H3("Passo a Passo", className="algorithm-title"),
         html.H4("Criptografia GGH"),
-        *content], style={'marginTop': '5px'})
+        *content], style={'marginTop': '5px', 'color': 'white', 'fontWeight': 'bold'})
 
 
 def ggh_encrypt(ggh_data, step):
@@ -534,14 +531,14 @@ def decrypt_step(ggh_data, step):
             content.insert(0,html.Div([
                 html.H5("Passo 3: Arredondamento de Babai (Remoção do Erro)"),
                 html.P("Multiplicação do erro pela inversa da chave pública",style={'fontWeight': 'bold'}),
-                html.Pre([
+                html.P([
                     f"error × U⁻¹ =", html.Br(),
                     f"{np.array2string(error, precision=2)} × {np.array2string(public_key_inverse, precision=2)} =", html.Br(),
                     f"{np.array2string(error_component, precision=2)}"
                 ], style={'fontFamily': 'monospace', 'textAlign': 'left'}),
 
                 html.P("Subtração do erro decodificado do plaintext aproximado",style={'fontWeight': 'bold'}),
-                html.Pre([
+                html.P([
                     f"decrypted_plaintext - (error × U⁻¹) =", html.Br(),
                     f"{np.array2string(decrypted_plaintext, precision=2)} - {np.array2string(error_component, precision=2)} =", html.Br(),
                     f"{np.array2string(rounded_decrypted_plaintext, precision=2)}"
@@ -575,10 +572,9 @@ def decrypt_step(ggh_data, step):
                     ,style={'fontFamily': 'monospace','textAlign': 'left'}
                 )], className='step-box'))
 
-    return html.Div([
-        html.H4("Passo a Passo", className="steps-title"),
+    return html.Div([html.H3("Passo a Passo", className="algorithm-title"),
         html.H4("Decriptografia GGH"),
-        *content], style={'marginTop': '5px'})
+        *content], style={'marginTop': '5px', 'color': 'white', 'fontWeight': 'bold'})
 
 
 def ggh_decrypt(ggh_data, step):
