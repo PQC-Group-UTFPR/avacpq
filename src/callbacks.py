@@ -5,7 +5,7 @@ from dash.dependencies import Input, Output
 from lattice_based.ggh.ggh import initGGH, get_ggh_data, ggh_encrypt, ggh_decrypt
 from dash.exceptions import PreventUpdate
 import json
-
+from flask_login import current_user
 
 def blank_figure():
     fig = go.Figure(go.Scatter(x=[], y=[]))
@@ -33,7 +33,7 @@ def get_callbacks(app):
             raise PreventUpdate
         
         last_selected = algorithm_selected[-1]
-        # Deixar ou não?
+        # Initialize the data of the algorithm and set for dados_carry
         if last_selected == 'GGH':
             if dados_carry is None:
                 dados_carry = initGGH(dados_carry, dimension)
@@ -45,7 +45,12 @@ def get_callbacks(app):
         elif last_selected == 'Alkaline':
             return {"display": "none"}, json.dumps({}), True, False
         return {"display": "none"}, json.dumps({'error': 'Algoritmo não reconhecido'}), True
-
+    
+    # Handles the step-by-step execution of the algorithm demonstration.
+    # On each step, this callback:
+    # 1. Processes the main data ('dados_carry') based on the algorithm and step number.
+    # 2. Updates the 'visualization-results' with a graph or text.
+    # 3. Updates the 'step-content' with a description of the current action.
     @app.callback(
          [Output('visualization-results', 'children', allow_duplicate=True),
          Output('step-content', 'children', allow_duplicate=True)],
@@ -58,7 +63,6 @@ def get_callbacks(app):
                 raise PreventUpdate
             if isinstance(dados_carry, str):
                 dados_carry = json.loads(dados_carry)
-
             algorithm = dados_carry.get('algorithm', '')
             if algorithm == 'GGH':
                 if step < 4: 
@@ -111,17 +115,20 @@ def get_callbacks(app):
         if clicks:            
             return {"display": "none"}, '', None, 0, True,False,[]
 
-#     # Login button callback
-#     @app.callback(
-#     Output('login-button-container', 'children'),
-#     Input('login-button', 'n_clicks'),
-#     prevent_initial_call=True
-# )
-#     def login_button_click(n_clicks):
-#         if n_clicks and n_clicks > 0:
-#             return dcc.Location(pathname='/login', id='login-redirect')
-        
-#         return no_update
+    # Callback for user status
+    @app.callback(
+        Output('user-status', 'children'),
+        Input('url', 'pathname'),  # ← Usa o dcc.Location
+        prevent_initial_call=True
+    )
+    def update_login_status(pathname):
+        if current_user.is_authenticated:
+            return html.Div(className="user-status", children=[
+                html.Img(src=current_user.profile_pic,className="profile-pic"),
+                html.A("Logout", href="/logout", className="login-button")
+            ])
+        else:
+            return html.A("Login", href="/login", className="login-button")
         
 
                 

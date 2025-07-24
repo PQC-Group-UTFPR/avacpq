@@ -75,7 +75,6 @@ html {
     padding: 0;
     width: auto;
     border-radius: 8px;
-
 }
 
 .app-title {
@@ -83,6 +82,24 @@ html {
     font-size: 1.5rem;
     font-weight: 600;
     margin: 0;
+}
+
+.user-status {
+    color: white;
+    font-size: 1rem;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: space-evenly;
+}
+
+.profile-pic {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    border: #333 solid 2px;
+    object-fit: cover;
+    margin-right: 10px;
 }
 
 
@@ -98,8 +115,9 @@ html {
     color: white;
     background-color: transparent;
     border: none;
+    text-decoration: none;
     cursor: pointer;
-    font-weight: 700;
+    font-weight: 600;
     font-size: medium;
     transition: all 0.2s ease;
 }

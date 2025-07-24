@@ -1,0 +1,8 @@
+# Ignorar arquivo .env com credenciais
+.env
+# Ignorar banco de dados SQLite
+*.db
+# Cache Python
+__pycache__/
+*.py[cod]
+*$py.class
