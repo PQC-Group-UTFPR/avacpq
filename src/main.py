@@ -2,6 +2,7 @@ from dash import Dash, html, dcc, page_container
 import os
 from callbacks import get_callbacks 
 from components.Header import create_header
+from components.Footer import create_footer
 import json
 import sqlite3
 from flask import Flask, redirect, request, url_for
@@ -144,7 +145,9 @@ app.layout = html.Div(
         dcc.Location(id='url', refresh=False),
         create_header(), 
         
-        page_container
+        page_container,
+        create_footer()
+
     ]
 )
 

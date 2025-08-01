@@ -8,10 +8,14 @@ def create_header():
             html.Div(
                 className="header-container",
                 children=[
+                    
                     html.Div(
                         className="header-left",
                         children=[
-                            html.Img(src="/assets/logo.png", className="header-logo"),
+                            dcc.Link(
+                                html.Img(src="/assets/logo.png", className="header-logo"),
+                                href="/"
+                            ),
                             html.H1("AVACPQ", className="app-title")
                         ]
                     ),

@@ -13,22 +13,39 @@ html {
 
 .app-container {
     width: 100vw;
-    height: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     font-family: Arial, sans-serif;
 
 }
 
 .app-body {
     min-height: 100vh;
-    background: linear-gradient(to bottom right,
-            #121212 70%, #333 30%);
+    position: relative;
+    font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow: hidden;
+}
+
+.app-body::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background-image: radial-gradient(#bbb 1px, transparent 0);
+    background-size: 150px 150px;
+    transform: rotate(45deg);
+    z-index: 0;
+    pointer-events: none;
 }
 
 /* Section header */
 .app-header {
-    background-color: #121212;
     margin: 0;
     padding: 0;
+    background-color: #111111;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
     width: 100vw;
 }
@@ -56,7 +73,7 @@ html {
 
 .header-right {
     position: absolute;
-    right: 20px;
+    right: 5px;
     top: 50%;
     transform: translateY(-50%);
 }
@@ -76,6 +93,12 @@ html {
     width: auto;
     border-radius: 8px;
 }
+
+
+.hidden {
+    display: none !important;
+}
+
 
 .app-title {
     color: white;
@@ -102,6 +125,63 @@ html {
     margin-right: 10px;
 }
 
+/* Section Footer */
+
+.app-footer {
+    background-color: #111111;
+    width: 100%;
+    position: relative;
+    height: 100px;
+    bottom: 0;
+    margin-top: auto;
+    left: 0;
+    gap: 10px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.2);
+}
+
+.footer-container {
+
+    background-color: #111111;
+    padding: 20px;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.footer-text {
+    color: #bbb;
+    font-size: 14px;
+    font: 600 14px Montserrat, sans-serif;
+    margin: 0;
+}
+
+.footer-link {
+    color: #bbb;
+    margin-right: 15px;
+    text-decoration: none;
+    font: 600 14px Montserrat, sans-serif;
+}
+
+.footer-link img {
+
+    vertical-align: middle;
+    margin-right: 5px;
+    transition: margin 0.2s ease;
+}
+
+.footer-link:hover {
+    color: yellow;
+    text-decoration: underline;
+    text-decoration-thickness: 3px;
+    text-underline-offset: 5px;
+}
+
+.footer-link:hover img {
+    margin: 0;
+}
 
 /* Logo */
 .responsiveimg {
@@ -149,11 +229,11 @@ html {
 }
 
 
-
 /* Section columns */
 .three-column-layout {
     display: flex;
     gap: 20px;
+    padding: 10px;
     min-height: 80vh;
 }
 
@@ -166,7 +246,6 @@ html {
     font-size: 1.2rem;
     font-weight: 700;
     color: white;
-    background: #121212;
     padding: 10px 20px;
     border-radius: 8px;
     text-decoration: underline;
@@ -182,7 +261,6 @@ html {
     display: flex;
     flex-direction: column;
     max-width: 250px;
-    background-color: none;
     max-height: 420px;
     flex: 0.5;
 }
@@ -192,23 +270,24 @@ html {
     flex-direction: column;
     justify-content: space-between;
     align-items: flex-start;
-    height: 500px;
-    background: linear-gradient(to bottom right,
-            #212121 30%, #333 50%);
+    background-color: #111111;
     margin-top: 20px;
-    color: white;
+    color: #bbb;
     padding: 10px;
     border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-bottom: 2px solid rgb(196, 196, 8);
+    border-left: 4px solid rgb(196, 196, 8);
     font-family: 'Segoe UI', sans-serif;
+    font-weight: 500;
+    z-index: 1;
 }
 
 .dash-checklist label {
     display: block;
     margin-bottom: 6px;
     padding-left: 4px;
-    font-size: 15px;
-    color: white;
+    font: 500 14px 'Segoe UI', sans-serif;
+    color: #bbb;
 }
 
 .button_control {
@@ -220,7 +299,7 @@ html {
 }
 
 .button_control button {
-    color: white;
+    color: #bbb;
     background: none;
     border: none;
     font-size: 14px;
@@ -239,10 +318,10 @@ html {
 }
 
 .button_control button:hover:not(:disabled) {
-    color: yellow;
     text-decoration: underline;
     text-decoration-thickness: 3px;
     text-underline-offset: 5px;
+
 }
 
 .nav-buttons {
@@ -255,16 +334,15 @@ html {
 }
 
 .checklist-container h3 {
-    font-size: 16px;
+    font-size: 15px;
     color: white;
     margin-bottom: 10px;
     background-color: #121212;
+    border-bottom: 1px solid #bbb;
     border-radius: 8px;
     text-align: center;
     width: 100%;
     padding: 8px;
-    border-bottom: 2px solid rgb(196, 196, 8);
-    border-left: 4px solid rgb(196, 196, 8);
 }
 
 /* Section vizualization column */
@@ -294,7 +372,7 @@ html {
 
 .step-box {
     border-left: 5px solid rgb(196, 196, 8);
-    background-color: #c7bbbb;
+    background-color: #888787;
     padding: 15px;
     margin-bottom: 20px;
     border-radius: 12px;
@@ -307,7 +385,9 @@ html {
     margin-bottom: 6px;
     font-size: 16px;
     font-weight: 600;
-    color: black
+    color: black;
+    font-weight: bold;
+
 }
 
 .step-box p {
@@ -382,12 +462,35 @@ html {
 }
 
 /* Home Page Section*/
-/* Estilos para a página inicial */
+/* Style for home page */
+
 .home-container {
+    position: relative;
     max-width: 100vw;
-    margin-top: 15px;
-    padding: 0;
+    margin: 0;
+    margin-top: 10px;
     font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    overflow-y: hidden;
+    overflow-x: hidden;
+}
+
+.home-container::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background-image: radial-gradient(#bbb 1px, transparent 0);
+    background-size: 120px 120px;
+    transform: rotate(45deg);
+    z-index: 0;
+    pointer-events: none;
+}
+
+.home-container>* {
+    position: relative;
+    z-index: 1;
 }
 
 .home-card {
@@ -404,7 +507,7 @@ html {
 .home-background-image {
     border-radius: 0 10px 10px 0;
     size: contain;
-    width: 65%;
+    width: 60%;
 }
 
 .home-card h1,
@@ -426,16 +529,16 @@ html {
 .home-container-card {
     display: flex;
     flex-direction: row;
+    background: linear-gradient(180deg, transparent 90%, #232323 100%);
+
     justify-content: flex-end;
-    background-color: #121212;
-    background-size: contain;
-    background-position: center;
+    padding: 0;
     height: 400px;
     gap: 30px;
     padding-right: 50px;
 }
 
-/* Estilos para os cards da home */
+/* Style for home card */
 .home-card {
     background-color: transparent;
     padding: 30px;
@@ -469,15 +572,33 @@ html {
     border: 1px solid yellow;
 }
 
+.section-cards {
+    background: linear-gradient(180deg, #232323 5%, transparent 10%, transparent 100%),
+        linear-gradient(90deg, transparent 30%, #232323 35%, transparent 50%, #232323 60%, transparent 75%, #232323 85%, #111111);
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 30px;
+}
+
+.section-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #ffffff;
+    display: flex;
+    height: 50px;
+    margin-bottom: 20px;
+    padding: 10px;
+    margin-top: 0;
+}
+
 .algorithm-cards {
     display: flex;
     justify-content: center;
     align-content: center;
-    align-items: center;
-    background: linear-gradient(to top left,
-            #333 50%, #121212 50%);
+    padding: 15px;
     flex-wrap: wrap;
-    height: 300px;
     gap: 20px;
 }
 
@@ -487,6 +608,7 @@ html {
     padding: 25px;
     height: 200px;
     border-radius: 8px;
+    margin-bottom: 30px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
     background-color: #212121;
 }
@@ -497,7 +619,7 @@ html {
 }
 
 .algo-card h3 {
-    font-size: 1.4em;
+    font-size: 1.1em;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -510,4 +632,168 @@ html {
     font-size: 0.95em;
     color: #DCDCDC;
     line-height: 1.7;
+}
+
+/* Algorithm/ Method not supported */
+.not-supported {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    height: 100%;
+    color: #bbb;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+
+    .three-column-layout {
+        flex-direction: column;
+        gap: 30px;
+    }
+
+    .header-container {
+        flex-direction: row;
+        width: 100%;
+        align-items: center;
+        justify-content: start;
+        gap: 10px;
+    }
+
+    .header-left {
+        margin-left: 0;
+        align-items: center;
+    }
+
+    .header-left h1 {
+        font-size: 1rem;
+    }
+
+    .header-center {
+        margin-left: 25px;
+        padding: 0;
+        gap: 10px;
+        max-width: fit-content;
+    }
+
+    .header-center a {
+        padding: 0;
+    }
+
+    .home-container-card {
+        flex-direction: column;
+        height: auto;
+        padding: 10px;
+        background: linear-gradient(180deg, transparent 90%, transparent 100%);
+    }
+
+    .home-card {
+        width: 100%;
+        text-align: center;
+    }
+
+    .home-card::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background-image: radial-gradient(#bbb 1px, transparent 0);
+        background-size: 50px 50px;
+        transform: rotate(45deg);
+    }
+
+    .home-background-image {
+        display: none;
+    }
+
+    .footer-container {
+        flex-direction: column;
+        text-align: center;
+    }
+
+    .header-logo {
+        height: 40px;
+    }
+
+    .column,
+    .controls-column,
+    .vizu-column,
+    .steps-column {
+        max-width: 100% !important;
+        flex: 1 !important;
+    }
+
+    .controls-column {
+        height: 50vh;
+    }
+
+    .control-card {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        border-bottom: none;
+    }
+
+    .checklist-container {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .button_control {
+        background-color: #111111;
+        position: fixed;
+        margin-left: 25%;
+        bottom: 100px;
+        border-bottom: 1px solid yellow;
+        border-radius: 10px;
+    }
+
+    .button_control button:hover:not(:disabled) {
+        background-color: #111111;
+        text-decoration: None;
+
+    }
+
+    .section-cards {
+        padding: 15px;
+        background: linear-gradient(180deg, transparent, #232323 2%, transparent 10%, transparent 100%),
+            linear-gradient(180deg, transparent, transparent 20%, #232323 25%, transparent 32%, transparent 55%, #232323 60%, transparent 70%, transparent 85%, #232323 90%, #111111);
+    }
+
+    .algo-card {
+        width: 90%;
+        max-width: 400px;
+        margin: 0 auto 20px auto;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        padding: 6px;
+    }
+
+    .algo-card h3 {
+        font-size: 1em;
+    }
+
+    .algo-card p {
+        font-size: 0.9em;
+    }
+
+    .algorithm-cards {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .profile-pic {
+        margin: 0;
+    }
+
+    .login-button,
+    .nav-link {
+        padding: 10px;
+        font-size: 1rem;
+    }
+
 }

@@ -17,36 +17,43 @@ def generate_control_card():
             html.Div(
                 className="checklist-container",
                 children=[
-                    html.H3("Algoritmos"),
-                    dcc.Checklist(
-                        id="checklist-Algorithms",
-                       options = [
-                        {'label': 'LWE (1 bit)', 'value': 'LWE'},
-                        {'label': 'GGH', 'value': 'GGH'},
-                        {'label': 'Alkaline', 'value': 'Alkaline'}
+                    html.Div(
+                        id="checklist-algorithms-wrapper",
+                        children=[
+                            html.H3("Algoritmos"),
+                            dcc.RadioItems(
+                                id="checklist-Algorithms",
+                                options=[
+                                    {'label': 'LWE (1 bit)', 'value': 'LWE'},
+                                    {'label': 'GGH', 'value': 'GGH'},
+                                    {'label': 'Alkaline', 'value': 'Alkaline'}
+                                ]
+                            ),
+                            
                         ]
                     ),
-                    html.Div(id='dimension-input-container',className='dimension-input-container'),
                     html.Br(),
-                    html.P("Métodos de Criptoanálise:"),
-                    dcc.Checklist(
+                    html.Div(
+                    id="checklist-methods-wrapper",
+                    children=[
+                    html.H3("Métodos de Criptoanálise"),
+                    dcc.RadioItems(
                         id="checklist-Methods",
-                        options={
-                            'method1': 'Redução de Gauss',
-                            'method2': 'LLL',
-                            'method3': 'BKZ',
-                        },
+                        options=[
+                            {'label': 'Redução de Gauss', 'value': 'Redução de Gauss'},
+                            {'label': 'LLL', 'value': 'LLL'},
+                            {'label': 'BKZ', 'value': 'BKZ'},
+                        ],
                     ),
+                    ])
                 ]
-            ),
+            ),html.Div(id='dimension-input-container', className='dimension-input-container'),
             # buttons
             html.Div(
                 className="button_control",
                 children=[
                     html.Button(id="start", children="Iniciar", n_clicks=0),
-                    html.Div([
-                    html.Button("Próximo", id="btn-next", n_clicks=0, className="btn-nav", disabled=True)
-                    ], className="nav-buttons"),
+                    html.Button("Próximo", id="btn-next", n_clicks=0, className="btn-nav", disabled=True),
                     html.Button(id="reset-btn", children="Reset", n_clicks=0)
                 ]
             )
@@ -55,9 +62,10 @@ def generate_control_card():
 
 def step_navigation():
     return html.Div([
+
+        dcc.Store(id='keygen-data'),
         
-        dcc.Store(id='keygen-data') , 
-        html.Div(id="step-content", className="step-content"),
+            html.Div(id="step-content", className="step-content"),
         
         dcc.Store(id='current-step', data={'step': 0})
         
@@ -87,7 +95,10 @@ layout = html.Div(
                 html.Div(
                     className="three-column-layout",
                     children=[
-                        html.Div([generate_control_card()], className="column controls-column"),
+                        html.Div(
+                            className="controls-column",  # hidden por padrão
+                            children=[generate_control_card()]
+                        ),
                         html.Div([step_navigation()], className="column steps-column"),
                         html.Div([visualization_Results()], className="column vizu-column")
                     ]
