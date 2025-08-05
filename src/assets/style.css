@@ -87,10 +87,11 @@ html {
 }
 
 .header-logo {
-    background-color: white;
     height: 60px;
     padding: 0;
     width: auto;
+    background-color: white;
+    padding: 3px;
     border-radius: 8px;
 }
 
@@ -152,9 +153,9 @@ html {
 }
 
 .footer-text {
-    color: #bbb;
+    color: #858484;
     font-size: 14px;
-    font: 600 14px Montserrat, sans-serif;
+    font: 300 14px Montserrat, sans-serif;
     margin: 0;
 }
 
@@ -166,9 +167,10 @@ html {
 }
 
 .footer-link img {
-
     vertical-align: middle;
     margin-right: 5px;
+    size: 30px;
+    border-radius: 5px;
     transition: margin 0.2s ease;
 }
 
@@ -482,7 +484,7 @@ html {
     width: 200%;
     height: 200%;
     background-image: radial-gradient(#bbb 1px, transparent 0);
-    background-size: 120px 120px;
+    background-size: 100px 110px;
     transform: rotate(45deg);
     z-index: 0;
     pointer-events: none;
@@ -505,9 +507,9 @@ html {
 }
 
 .home-background-image {
-    border-radius: 0 10px 10px 0;
-    size: contain;
-    width: 60%;
+    border-radius: 10px;
+    size: cover;
+    width: 55%;
 }
 
 .home-card h1,
@@ -529,12 +531,11 @@ html {
 .home-container-card {
     display: flex;
     flex-direction: row;
-    background: linear-gradient(180deg, transparent 90%, #232323 100%);
-
     justify-content: flex-end;
     padding: 0;
     height: 400px;
-    gap: 30px;
+    margin-top: 50px;
+    gap: 10px;
     padding-right: 50px;
 }
 
@@ -568,22 +569,29 @@ html {
 }
 
 .banner-button:hover {
+    padding: 9px 19px;
     background-color: transparent;
     border: 1px solid yellow;
 }
 
 .section-cards {
-    background: linear-gradient(180deg, #232323 5%, transparent 10%, transparent 100%),
-        linear-gradient(90deg, transparent 30%, #232323 35%, transparent 50%, #232323 60%, transparent 75%, #232323 85%, #111111);
-
     display: flex;
+    margin-top: 50px;
     flex-direction: column;
     justify-content: center;
     gap: 30px;
 }
 
+.container-cards {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 20px;
+    padding: 15px;
+}
+
 .section-title {
-    font-size: 1.4rem;
+    font-size: 1.6rem;
     font-weight: 700;
     color: #ffffff;
     display: flex;
@@ -596,9 +604,8 @@ html {
 .algorithm-cards {
     display: flex;
     justify-content: center;
-    align-content: center;
+    flex-direction: column;
     padding: 15px;
-    flex-wrap: wrap;
     gap: 20px;
 }
 
@@ -610,7 +617,7 @@ html {
     border-radius: 8px;
     margin-bottom: 30px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
-    background-color: #212121;
+    background-color: #1b1b1b;
 }
 
 .algo-card:hover {
@@ -679,11 +686,11 @@ html {
         padding: 0;
     }
 
+
     .home-container-card {
         flex-direction: column;
         height: auto;
         padding: 10px;
-        background: linear-gradient(180deg, transparent 90%, transparent 100%);
     }
 
     .home-card {
@@ -760,6 +767,12 @@ html {
         padding: 15px;
         background: linear-gradient(180deg, transparent, #232323 2%, transparent 10%, transparent 100%),
             linear-gradient(180deg, transparent, transparent 20%, #232323 25%, transparent 32%, transparent 55%, #232323 60%, transparent 70%, transparent 85%, #232323 90%, #111111);
+    }
+
+    .container-cards {
+        flex-direction: column;
+        align-items: center;
+        padding: 0;
     }
 
     .algo-card {

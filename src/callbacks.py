@@ -171,13 +171,16 @@ def get_callbacks(app):
      Output('btn-next', 'n_clicks', allow_duplicate=True),
      Output('btn-next', 'disabled'),
      Output('start', 'disabled', allow_duplicate=True),
-     Output('checklist-Algorithms', 'value') ],
+     Output('checklist-Algorithms', 'value'),
+     Output('checklist-methods-wrapper', 'style',allow_duplicate=True),
+     Output('checklist-algorithms-wrapper', 'style',allow_duplicate=True),
+    ],
      Input('reset-btn', 'n_clicks'),
      prevent_initial_call=True
     )
     def ResetSystem(clicks):
         if clicks:            
-            return '', '', None, 0, True,False,None
+            return '', '', None, 0, True,False,None,{"pointerEvents": "auto", "opacity": 1},{"pointerEvents": "auto", "opacity": 1}
 
     # Callback for user status
     @app.callback(

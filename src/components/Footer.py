@@ -8,15 +8,13 @@ def create_footer():
             html.Div(
                 className="footer-container",
                 children=[
-                    html.Div(
-                    html.P("© 2025 AVACPQ", className="footer-text"),
-                    ),
+                    
                     html.Div(children=[
                     html.A([
                                 html.Img(
                                     src="/assets/github-logo_2.png", 
                                     className="footer-logo",
-                                    style={"height": "30px", "marginRight": "5px"}
+                                    style={"height": "30px", "marginRight": "5px", "backgroundColor": "transparent"}
                                 ),
                                 "GitHub"
                             ], 
@@ -25,16 +23,19 @@ def create_footer():
                             className="footer-link"),
                     html.A([
                                 html.Img(
-                                    src="/assets/utfpr-logo.png",  
+                                    src="/assets/logo.png",  
                                     className="footer-logo",
-                                    style={"height": "20px", "marginRight": "5px"}
+                                    style={"height": "30px", "marginRight": "5px"}
                                 ),
-                                "COENC"
+                                "AVACPQ"
                             ], 
-                            href="https://coenc.td.utfpr.edu.br/", 
+                            href="https://pqc-group-utfpr.github.io/", 
                             target="_blank", 
                             className="footer-link")
                 ]),
+                html.Div(
+                    html.P("© 2025 PQC Group UTFPR. All rights reserved.", className="footer-text"),
+                    ),
                 ]
             )
         ]

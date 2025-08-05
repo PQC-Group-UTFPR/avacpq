@@ -6,24 +6,6 @@ import secrets
 from datetime import datetime
 from lattice_based.algorithms import BaseAlgorithm
 
-# Print debug messages?
-debug = True
-
-
-def debug_print(message, variable=None):
-    """
-    Prints debug messages with a timestamp if debug mode is enabled.
-
-    Args:
-        message (str): The debug message to print.
-        variable (optional): Additional variable to print alongside the message.
-    """
-    if debug:
-        current_time = datetime.now().strftime("%H:%M")
-        print(f"[DEBUG-{current_time}] {message}")
-        if variable is not None:
-            print(variable)
-
 def generate_random_plaintext(n, r):
     """
     Generates a random plaintext vector of specified dimensions and range.
@@ -57,7 +39,18 @@ class GGH(BaseAlgorithm):
         """
         self.n = n
         self.rand = 20
-
+    def generate_random_matrix(self, r):
+        """
+        Generates a random matrix of size (n x n) with elements in the range [0, r).
+        """
+        matrix = np.array(
+            [[secrets.randbelow(r) for _ in range(self.n)] for _ in range(self.n)]
+        )
+        while np.linalg.matrix_rank(matrix) != self.n:
+            matrix = np.array(
+                [[secrets.randbelow(r) for _ in range(self.n)] for _ in range(self.n)]
+            )
+        return matrix
     def generate_keys(self):
         """
         Generates the lattice basis B' and computes the public key U.
@@ -67,44 +60,22 @@ class GGH(BaseAlgorithm):
                    and the public key U (numpy.ndarray).
         """
         # Choose r automatically within a reasonable range
-        r = secrets.randbelow(self.rand) + 1
-        # debug_print(f"Chosen r: {r}")
+        
+        r = 11
+        # print(f"Chosen r: {r}")
 
         # Given lattice basis
-        B = np.array(
-            [
-                [secrets.randbelow(r * 2 + 1) - r for _ in range(self.n)]
-                for _ in range(self.n)
-            ]
-        )
-        while np.linalg.matrix_rank(B) != self.n:
-            B = np.array(
-                [
-                    [secrets.randbelow(r * 2 + 1) - r for _ in range(self.n)]
-                    for _ in range(self.n)
-                ]
-            )
-        # debug_print("Lattice basis B:", B)
+        B = self.generate_random_matrix(r)
+
+        # print("Lattice basis B:", B)
 
         # Desired lattice basis
-        B_prime = np.array(
-            [
-                [secrets.randbelow(r * 2 + 1) - r for _ in range(self.n)]
-                for _ in range(self.n)
-            ]
-        )
-        while np.linalg.matrix_rank(B_prime) != self.n:
-            B_prime = np.array(
-                [
-                    [secrets.randbelow(r * 2 + 1) - r for _ in range(self.n)]
-                    for _ in range(self.n)
-                ]
-            )
-        # debug_print("Desired lattice basis B_prime:", B_prime)
+        B_prime = self.generate_random_matrix(r)
+        # print("Desired lattice basis B_prime:", B_prime)
 
         # Compute the public key U
         U = np.dot(B_prime, inv(B))
-        # debug_print("Public key U:", U)
+        # print("Public key U:", U)
         
         public_key_inverse = inv(U)
         return B,B_prime, U, public_key_inverse
@@ -120,7 +91,7 @@ class GGH(BaseAlgorithm):
             np.array: The generated error vector.
         """
         error = np.array([secrets.randbelow(2 * e + 1) - e for _ in range(self.n)])
-        # debug_print("Error vector:", error)
+        # print("Error vector:", error)
 
         return error
 
@@ -137,7 +108,7 @@ class GGH(BaseAlgorithm):
             np.array: The ciphertext resulting from the encryption process.
         """
         ciphertext = np.dot(plaintext, public_key) + error
-        # debug_print("Ciphertext:", ciphertext)
+        # print("Ciphertext:", ciphertext)
 
         return ciphertext
 
@@ -153,7 +124,7 @@ class GGH(BaseAlgorithm):
             np.array: The decrypted plaintext (before Babai rounding).
         """
         decrypted_plaintext = np.dot(ciphertext, public_key_inverse)
-        # debug_print("Decrypted plaintext (before Babai rounding):", decrypted_plaintext)
+        # print("Decrypted plaintext (before Babai rounding):", decrypted_plaintext)
 
         return decrypted_plaintext
 
@@ -170,7 +141,7 @@ class GGH(BaseAlgorithm):
             np.array: The rounded decrypted plaintext.
         """
         rounded_decrypted_plaintext = decrypted_plaintext - np.dot(error, inverse_basis)
-        # debug_print("Rounded decrypted plaintext:", rounded_decrypted_plaintext)
+        # print("Rounded decrypted plaintext:", rounded_decrypted_plaintext)
 
         return rounded_decrypted_plaintext
 
@@ -242,15 +213,17 @@ class GGH(BaseAlgorithm):
         B_prime = np.array(data['B_prime'])
         U = np.array(data['U'])
         dimension = np.array(data['dimension'])
+        plaintext = np.array(data['plaintext'])
         if(dimension==2):
             step_vector_mapping = {
-            1: [{'matrix': B, 'color': 'gray', 'dash': None, 'prefix': 'Base Ruim'}],
-            2: [{'matrix': B, 'color': 'gray', 'dash': None, 'prefix': 'Base Ruim'},
-                {'matrix': B_prime, 'color': 'blue', 'dash': None, 'prefix': 'Base Boa'}],
-            3: [
-                {'matrix': B, 'color': 'gray', 'dash': None, 'prefix': 'Base Ruim'},
-                {'matrix': B_prime, 'color': 'blue', 'dash': None, 'prefix': 'Base Boa'},
-                {'matrix': U, 'color': 'red', 'dash': None, 'prefix': 'Chave Pública'}
+            1: [{'matrix': B, 'color': 'gray', 'dash': None, 'prefix': 'Base Aleatória B'}],
+            2: [
+                {'matrix': B_prime, 'color': 'blue', 'dash': None, 'prefix': 'Chave Privada' },
+            ],
+            3: [    
+                {'matrix': B_prime, 'color': 'blue', 'dash': None, 'prefix': 'Chave Privada'},
+                {'matrix': U, 'color': 'red', 'dash': None, 'prefix': 'Chave Pública'},
+                {'point': plaintext, 'color': 'white', 'prefix': 'Plaintext'}
             ]
                 }
             fig = plot_vectors(step_vector_mapping, step, dimension,True, title='Bases e Chaves GGH')
@@ -366,7 +339,22 @@ def plot_vectors(step_vector_mapping, step, dimension, is_matrix=True, title="")
     vector_configs = step_vector_mapping.get(step, [])
 
     for config in vector_configs:
-        if is_matrix:
+        # Se for um ponto, renderiza como ponto
+        if 'point' in config:
+            point = config['point']
+            fig.add_trace(go.Scatter(
+                x=[point[0]],
+                y=[point[1]],
+                mode='markers',
+                marker=dict(
+                    color=config['color'],
+                    size=8,
+                    symbol='circle'
+                ),
+                name=config['prefix']
+            ))
+        # Se for uma matriz, renderiza como vetores
+        elif is_matrix and 'matrix' in config:
             for i in range(dimension):
                 vec = config['matrix'][i]
                 fig.add_trace(go.Scatter(
@@ -392,7 +380,8 @@ def plot_vectors(step_vector_mapping, step, dimension, is_matrix=True, title="")
                     arrowsize=1,
                     arrowwidth=2,
                 )
-        else:
+        # Se for um vetor simples
+        elif 'vector' in config:
             vec = config['vector']
             fig.add_trace(go.Scatter(
                 x=[0, vec[0]],

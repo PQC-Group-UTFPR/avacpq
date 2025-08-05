@@ -40,36 +40,40 @@ layout = html.Div(
             className="section-cards",
             children=[
                 
-                
                 # Cards de algoritmos
                 html.Div(
                     className="algorithm-cards",
                     children=[
-                        html.H2("Algoritmos Pós-Quânticos", className="section-title"),
-                        # Card GGH
+                        html.H2("Algoritmos Pós-Quânticos", className="section-title", style={"align-self": "center"}),
                         html.Div(
-                            className="algo-card",
+                            className="container-cards",
                             children=[
-                                html.H3("GGH"),
-                                html.P("Baseado em reticulados, o GGH usa a dificuldade de encontrar o vetor mais curto (SVP). "),
+                            # Card GGH
+                            html.Div(
+                                className="algo-card",
+                                children=[
+                                        html.H3("GGH"),
+                                        html.P("Baseado em reticulados, o GGH usa a dificuldade de encontrar o vetor mais curto (SVP). "),
+                                    ]
+                                ),
+                                # Card LWE
+                                html.Div(
+                                    className="algo-card",
+                                    children=[
+                                        html.H3("LWE"),
+                                        html.P("Baseado em reticulados, o LWE baseia-se na resolução equações com pequenos erros aleatórios."),
+                                    ]
+                                ),
+                                # Card Alkaline
+                                html.Div(
+                                    className="algo-card",
+                                    children=[
+                                        html.H3("Alkaline"),
+                                        html.P("Baseado em estruturas algébricas, o Alkaline é difícil porque combina várias operações matemáticas complexas."),
+                                    ]
+                                )
                             ]
-                        ),
-                        # Card LWE
-                        html.Div(
-                            className="algo-card",
-                            children=[
-                                html.H3("LWE"),
-                                html.P("Baseado em reticulados, o LWE baseia-se na resolução equações com pequenos erros aleatórios."),
-                            ]
-                        ),
-                        # Card Alkaline
-                        html.Div(
-                            className="algo-card",
-                            children=[
-                                html.H3("Alkaline"),
-                                html.P("Baseado em estruturas algébricas, o Alkaline é difícil porque combina várias operações matemáticas complexas."),
-                            ]
-                        )
+                            )
                     ]
                 ),
                  # Título da seção de criptoanálise
@@ -80,32 +84,35 @@ layout = html.Div(
                             className="algorithm-cards",
                             children=[
                                 
-                            html.H2("Métodos de Criptoanálise", className="section-title"),
+                            html.H2("Métodos de Criptoanálise", className="section-title",style={"align-self": "center"}),
                                 # Card Redução de Gauss
-                                
                                 html.Div(
-                                    className="algo-card",
+                                    className="container-cards",
                                     children=[
-                                        html.H3("Redução de Gauss"),
-                                        html.P("Método clássico para encontrar vetores curtos em reticulados bidimensionais, transformando a base em vetores ortogonais."),
-                                    ]
-                                ),
-                                # Card LLL
-                                html.Div(
-                                    className="algo-card",
-                                    children=[
-                                        html.H3("LLL"),
-                                        html.P("Algoritmo Lenstra-Lenstra-Lovász que aproxima soluções para o SVP em reticulados com complexidade polinomial."),
-                                    ]
-                                ),
-                                # Card BKZ
-                                html.Div(
-                                    className="algo-card",
-                                    children=[
-                                        html.H3("BKZ"),
-                                        html.P("Block Korkine-Zolotarev melhora o LLL trabalhando com blocos da base do reticulado para encontrar vetores mais curtos."),
-                                    ]
-                                )
+                                        html.Div(
+                                            className="algo-card",
+                                            children=[
+                                                html.H3("Redução de Gauss"),
+                                                html.P("Método clássico para encontrar vetores curtos em reticulados bidimensionais, transformando a base em vetores ortogonais."),
+                                            ]
+                                        ),
+                                        # Card LLL
+                                        html.Div(
+                                            className="algo-card",
+                                            children=[
+                                                html.H3("LLL"),
+                                                html.P("Algoritmo Lenstra-Lenstra-Lovász que aproxima soluções para o SVP em reticulados com complexidade polinomial."),
+                                            ]
+                                        ),
+                                        # Card BKZ
+                                        html.Div(
+                                            className="algo-card",
+                                            children=[
+                                                html.H3("BKZ"),
+                                                html.P("Block Korkine-Zolotarev melhora o LLL trabalhando com blocos da base do reticulado para encontrar vetores mais curtos."),
+                                            ]
+                                        )
+                                    ])
                             ]
                         )
                 
