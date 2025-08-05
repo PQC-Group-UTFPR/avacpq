@@ -218,11 +218,11 @@ class GGH(BaseAlgorithm):
             step_vector_mapping = {
             1: [{'matrix': B, 'color': 'gray', 'dash': None, 'prefix': 'Base Aleatória B'}],
             2: [
-                {'matrix': B_prime, 'color': 'blue', 'dash': None, 'prefix': 'Chave Privada' },
+                {'matrix': B_prime, 'color': 'red', 'dash': None, 'prefix': 'Chave Privada' },
             ],
             3: [    
-                {'matrix': B_prime, 'color': 'blue', 'dash': None, 'prefix': 'Chave Privada'},
-                {'matrix': U, 'color': 'red', 'dash': None, 'prefix': 'Chave Pública'},
+                {'matrix': B_prime, 'color': 'red', 'dash': None, 'prefix': 'Chave Privada'},
+                {'matrix': U, 'color': 'blue', 'dash': None, 'prefix': 'Chave Pública'},
                 {'point': plaintext, 'color': 'white', 'prefix': 'Plaintext'}
             ]
                 }
