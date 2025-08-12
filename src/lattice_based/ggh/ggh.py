@@ -1,0 +1,626 @@
+import numpy as np
+from dash import html,dash_table, dcc
+import plotly.graph_objects as go
+from numpy.linalg import inv
+import secrets
+from datetime import datetime
+from lattice_based.algorithms import BaseAlgorithm
+
+def generate_random_plaintext(n, r):
+    """
+    Generates a random plaintext vector of specified dimensions and range.
+
+    Args:
+        n (int): The number of dimensions for the plaintext vector.
+        r (int): The range for the random values in the plaintext vector.
+
+    Returns:
+        numpy.ndarray: The generated random plaintext vector.
+    """
+    plaintext = np.array([secrets.randbelow(r) - (r / 2) for _ in range(n)])
+    return plaintext
+
+
+class GGH(BaseAlgorithm):
+    """
+    Goldreich-Goldwasser-Halevi (GGH) encryption system implementation.
+
+    The GGH class provides functionalities for generating keys, encrypting and
+    decrypting messages using the GGH encryption system. It operates on vectors
+    in a lattice-based cryptosystem.
+    """
+
+    def __init__(self, n):
+        """
+        Initializes the GGH encryption system with the specified dimensionality.
+
+        Args:
+            n (int): The number of dimensions for the lattice vectors.
+        """
+        self.n = n
+        self.rand = 20
+    def generate_random_matrix(self, r):
+        """
+        Generates a random matrix of size (n x n) with elements in the range [0, r).
+        """
+        matrix = np.array(
+            [[secrets.randbelow(r) for _ in range(self.n)] for _ in range(self.n)]
+        )
+        while np.linalg.matrix_rank(matrix) != self.n:
+            matrix = np.array(
+                [[secrets.randbelow(r) for _ in range(self.n)] for _ in range(self.n)]
+            )
+        return matrix
+    def generate_keys(self):
+        """
+        Generates the lattice basis B' and computes the public key U.
+
+        Returns:
+            tuple: A tuple containing the desired lattice basis B' (numpy.ndarray)
+                   and the public key U (numpy.ndarray).
+        """
+        # Choose r automatically within a reasonable range
+        
+        r = 11
+        # print(f"Chosen r: {r}")
+
+        # Given lattice basis
+        B = self.generate_random_matrix(r)
+
+        # print("Lattice basis B:", B)
+
+        # Desired lattice basis
+        B_prime = self.generate_random_matrix(r)
+        # print("Desired lattice basis B_prime:", B_prime)
+
+        # Compute the public key U
+        U = np.dot(B_prime, inv(B))
+        # print("Public key U:", U)
+        
+        public_key_inverse = inv(U)
+        return B,B_prime, U, public_key_inverse
+
+    def generate_error(self, e):
+        """
+        Generate an error vector with values from -e to e (inclusive).
+
+        Args:
+            e (int): The range of values for the error vector.
+
+        Returns:
+            np.array: The generated error vector.
+        """
+        error = np.array([secrets.randbelow(2 * e + 1) - e for _ in range(self.n)])
+        # print("Error vector:", error)
+
+        return error
+
+    def encrypt(self, public_key, plaintext, error):
+        """
+        Encrypt the plaintext by multiplying it with the public key and adding error.
+
+        Args:
+            public_key (np.array): The public key used for encryption.
+            plaintext (np.array): The plaintext message to be encrypted.
+            error (np.array): The error vector to add to the encrypted message.
+
+        Returns:
+            np.array: The ciphertext resulting from the encryption process.
+        """
+        ciphertext = np.dot(plaintext, public_key) + error
+        # print("Ciphertext:", ciphertext)
+
+        return ciphertext
+
+    def decrypt(self, public_key_inverse, ciphertext):
+        """
+        Decrypt the ciphertext using the public key inverse.
+
+        Args:
+            public_key_inverse (np.array): The inverse of the public key used for decryption.
+            ciphertext (np.array): The encrypted message to be decrypted.
+
+        Returns:
+            np.array: The decrypted plaintext (before Babai rounding).
+        """
+        decrypted_plaintext = np.dot(ciphertext, public_key_inverse)
+        # print("Decrypted plaintext (before Babai rounding):", decrypted_plaintext)
+
+        return decrypted_plaintext
+
+    def babai_rounding(self, decrypted_plaintext, error, inverse_basis):
+        """
+        Apply Babai rounding to remove the error term if it's small enough.
+
+        Args:
+            decrypted_plaintext (np.array): The decrypted plaintext.
+            error (np.array): The error vector.
+            inverse_basis (np.array): The inverse of the lattice basis used for rounding.
+
+        Returns:
+            np.array: The rounded decrypted plaintext.
+        """
+        rounded_decrypted_plaintext = decrypted_plaintext - np.dot(error, inverse_basis)
+        # print("Rounded decrypted plaintext:", rounded_decrypted_plaintext)
+
+        return rounded_decrypted_plaintext
+
+    def recover_plaintext(self, rounded_decrypted_plaintext, public_key):
+        """
+        Recover the plaintext message by multiplying rounded decrypted plaintext
+        with U-inverse.
+
+        Args:
+            rounded_decrypted_plaintext (np.array): The rounded decrypted plaintext.
+            public_key (np.array): The public key used for encryption.
+
+        Returns:
+            np.array: The recovered plaintext message.
+        """
+        plaintext = np.dot(rounded_decrypted_plaintext, inv(public_key))
+        plaintext = np.dot(plaintext, public_key)
+        plaintext = np.round(plaintext).astype(int)
+
+        return plaintext
+    @property
+    def step_phases(self):
+        """Define as fases e limites de steps para o GGH."""
+        return {
+            'keygen': (0, 3),   # Steps 0-3: Key Generation
+            'encrypt': (4, 6),  # Steps 4-6: Encryption
+            'decrypt': (7, 10)  # Steps 7-10: Decryption
+        }
+    def initialize(self, dimension=2):
+        # Update the dimension of the lattice
+        self.n = dimension
+        
+        # Generation of the data for GGH
+        B, B_prime, U, public_key_inverse = self.generate_keys()
+        error = self.generate_error(e=1)
+        plaintext = generate_random_plaintext(dimension, self.rand)
+        ciphertext = self.encrypt(U, plaintext, error) 
+        decrypt = self.decrypt(public_key_inverse, ciphertext)
+
+        # Create and return the GGH data dictionary
+        ggh_data = {
+            'dimension': dimension,
+            'B': B.tolist(),
+            'B_prime': B_prime.tolist(),
+            'U': U.tolist(),
+            'public_key_inverse': public_key_inverse.tolist(),
+            'plaintext': plaintext.tolist(),
+            'error': error.tolist(),
+            'ciphertext': ciphertext.tolist(),
+            'decrypt': decrypt.tolist(),
+            'algorithm': 'GGH'
+        }
+        return ggh_data
+    # Separate the GGH in steps
+    def process_step(self, step, data):
+        """Processa um step específico reutilizando as funções existentes."""
+        phase, phase_step = self.get_phase_for_step(step)
+        if phase == 'keygen':
+            return self._process_keygen(data, phase_step)
+        elif phase == 'encrypt':
+            return self._process_encrypt(data, phase_step)
+        elif phase == 'decrypt':
+            return self._process_decrypt(data, phase_step)
+    # Handle plotting of vectors or tables 
+    # and call another function to generate the step content
+    def _process_keygen(self, data, step):
+        
+        B = np.array(data['B'])
+        B_prime = np.array(data['B_prime'])
+        U = np.array(data['U'])
+        dimension = np.array(data['dimension'])
+        plaintext = np.array(data['plaintext'])
+        if(dimension==2):
+            step_vector_mapping = {
+            1: [{'matrix': B, 'color': 'gray', 'dash': None, 'prefix': 'Base Aleatória B'}],
+            2: [
+                {'matrix': B_prime, 'color': 'red', 'dash': None, 'prefix': 'Chave Privada' },
+            ],
+            3: [    
+                {'matrix': B_prime, 'color': 'red', 'dash': None, 'prefix': 'Chave Privada'},
+                {'matrix': U, 'color': 'blue', 'dash': None, 'prefix': 'Chave Pública'},
+                {'point': plaintext, 'color': 'white', 'prefix': 'Plaintext'}
+            ]
+                }
+            fig = plot_vectors(step_vector_mapping, step, dimension,True, title='Bases e Chaves GGH')
+            output_fig = dcc.Graph(figure=fig)
+        else:
+            tables = []
+            if(step in [1,2,3]):
+                tables.insert(0,matrix_to_table(B, "Base Aleatória B"))
+            if(step in [2,3]):
+                tables.insert(0,matrix_to_table(B_prime, "Base Privada B'"))
+            if(step in [3]):
+                tables.insert(0,matrix_to_table(U, "Chave Pública"))
+            output_fig = html.Div(tables)
+        # Generate the content for the keygen step
+        steps_content = generate_keygen_steps_content(B, B_prime, U, step)
+
+        return output_fig, steps_content
+    # Process the encryption 
+    def _process_encrypt(self, data, step):
+            dimension = np.array(data['dimension'])
+            if(dimension==2):
+                fig = go.Figure()
+                step_vector_mapping = {
+                4: [
+                    {'vector': np.dot(data['plaintext'], data['U']), 'color': 'green', 'dash': None, 'prefix': 'plaintext × U'},
+                ],
+                5: [
+                    {'vector': np.dot(data['plaintext'], data['U']), 'color': 'green', 'dash': None, 'prefix': 'plaintext × U'},
+                    {'vector': data['error'], 'color': 'orange', 'dash': None, 'prefix': 'Erro'},
+                ],
+                6: [
+                    {'vector': np.dot(data['plaintext'], data['U']), 'color': 'green', 'dash': None, 'prefix': 'plaintext × U'},
+                    {'vector': data['error'], 'color': 'orange', 'dash': None, 'prefix': 'Erro'},
+                    {'vector': data['ciphertext'], 'color': 'yellow', 'dash': None, 'prefix': 'Ciphertext'},
+                ]
+                }
+                fig = plot_vectors(step_vector_mapping, step, dimension, False, title='Encriptação GGH')
+                output_fig = dcc.Graph(figure=fig)
+            # If dimension is not 2, use tables instead of vectors
+            else:
+                tables = []
+                if step in [4, 5, 6]:
+                    plaintext_U = np.dot(data['plaintext'], data['U'])
+                    tables.insert(0,matrix_to_table(np.array([data['plaintext']]), "Plaintext"))
+                if step in [5, 6]:
+                    tables.insert(0,matrix_to_table(np.array([data['error']]), "Erro"))
+                if step == 6:
+                    tables.insert(0,matrix_to_table(np.array([data['ciphertext']]), "Ciphertext"))
+                output_fig = html.Div(tables)
+
+            # Generate the content for the encryption step
+            step_content = encrypt_step(data, step)
+
+            return output_fig, step_content
+    # Process the decryption
+    def _process_decrypt(self, data, step):
+
+        U = np.array(data['U'])
+        public_key_inverse = inv(U)
+        decrypted_plaintext = np.dot(data['ciphertext'], public_key_inverse)
+        rounded_decrypted_plaintext = decrypted_plaintext - np.dot(data['error'], public_key_inverse)
+        temp = np.dot(rounded_decrypted_plaintext, public_key_inverse)
+        recovered_plaintext = np.round(np.dot(temp, U)).astype(int)
+        dimension = np.array(data['dimension'])
+        if(dimension==2):
+            fig = go.Figure()
+            step_vector_mapping = {
+                7: [
+                    {'vector': data['ciphertext'], 'color': 'yellow', 'dash': None, 'prefix': 'Ciphertext'},
+                ],
+                8: [
+                    {'vector': data['ciphertext'], 'color': 'yellow', 'dash': None, 'prefix': 'Ciphertext'},
+                    {'vector': decrypted_plaintext, 'color': 'purple', 'dash': None, 'prefix': 'Decrypted'},
+                ],
+                9: [
+                    {'vector': data['ciphertext'], 'color': 'yellow', 'dash': None, 'prefix': 'Ciphertext'},
+                    {'vector': decrypted_plaintext, 'color': 'purple', 'dash': None, 'prefix': 'Decrypted'},
+                    {'vector': rounded_decrypted_plaintext, 'color': 'blue', 'dash': None, 'prefix': 'Rounded'},
+                ],
+                10: [
+                    {'vector': data['ciphertext'], 'color': 'yellow', 'dash': None, 'prefix': 'Ciphertext'},
+                    {'vector': decrypted_plaintext, 'color': 'purple', 'dash': None, 'prefix': 'Decrypted'},
+                    {'vector': rounded_decrypted_plaintext, 'color': 'blue', 'dash': None, 'prefix': 'Rounded'},
+                    {'vector': recovered_plaintext, 'color': 'green', 'dash': None, 'prefix': 'Recovered'},
+                ]
+            }
+            fig = plot_vectors(step_vector_mapping, step, dimension, False, title='Decriptação GGH')
+            out_fig = dcc.Graph(figure=fig)
+        # If dimension is not 2, use tables instead of vectors
+        else:
+            tables = []
+            if step in [7, 8, 9, 10]:
+                tables.insert(0,matrix_to_table(np.array([data['ciphertext']]), "Texto Cifrado"))
+            if step in [8, 9, 10]:
+                tables.insert(0,matrix_to_table(np.array([decrypted_plaintext]), "Mensagem Decifrada"))
+            if step in [9, 10]:
+                tables.insert(0,matrix_to_table(np.array([rounded_decrypted_plaintext]), "Arredondamento de Babai"))
+            if step == 10:
+                tables.insert(0,matrix_to_table(np.array([recovered_plaintext]), "Mensagem Recuperada"))
+            out_fig = html.Div(tables)
+        # Generate the content for the decryption step
+        step_content = decrypt_step(data, step)
+        
+        return out_fig, step_content
+
+
+# Separate algorithm in steps for plotting vectors and matrices
+
+# Function to plot vectors or matrices
+def plot_vectors(step_vector_mapping, step, dimension, is_matrix=True, title=""):
+    
+    fig = go.Figure()
+    vector_configs = step_vector_mapping.get(step, [])
+
+    for config in vector_configs:
+        # Se for um ponto, renderiza como ponto
+        if 'point' in config:
+            point = config['point']
+            fig.add_trace(go.Scatter(
+                x=[point[0]],
+                y=[point[1]],
+                mode='markers',
+                marker=dict(
+                    color=config['color'],
+                    size=8,
+                    symbol='circle'
+                ),
+                name=config['prefix']
+            ))
+        # Se for uma matriz, renderiza como vetores
+        elif is_matrix and 'matrix' in config:
+            for i in range(dimension):
+                vec = config['matrix'][i]
+                fig.add_trace(go.Scatter(
+                    x=[0, vec[0]],
+                    y=[0, vec[1]],
+                    mode='lines',
+                    line=dict(color=config['color'], dash=config['dash']),
+                    name=config['prefix'],
+                    showlegend=(i == 0)
+                ))
+                fig.add_annotation(
+                    x=vec[0],
+                    y=vec[1],
+                    ax=0,
+                    ay=0,
+                    xref="x",
+                    yref="y",
+                    axref="x",
+                    ayref="y",
+                    showarrow=True,
+                    arrowhead=3,
+                    arrowcolor=config['color'],
+                    arrowsize=1,
+                    arrowwidth=2,
+                )
+        # Se for um vetor simples
+        elif 'vector' in config:
+            vec = config['vector']
+            fig.add_trace(go.Scatter(
+                x=[0, vec[0]],
+                y=[0, vec[1]],
+                mode='lines',
+                line=dict(color=config['color'], dash=config['dash']),
+                marker=dict(color=config['color']),
+                name=config['prefix']
+            ))
+            fig.add_annotation(
+                x=vec[0],
+                y=vec[1],
+                ax=0,
+                ay=0,
+                xref="x",
+                yref="y",
+                axref="x",
+                ayref="y",
+                showarrow=True,
+                arrowhead=3,
+                arrowcolor=config['color'],
+                arrowsize=1,
+                arrowwidth=2,
+            )
+
+    fig.update_layout(
+        title=title,
+        xaxis_title="X",
+        yaxis_title="Y",
+        template='plotly_dark'
+    )
+    return fig
+# Function to generate the content for the key generation steps
+def generate_keygen_steps_content(B, B_prime, U, step):
+        content = []
+
+        if step >= 1:
+            content.insert(0,html.Div([
+                html.H5("Passo 1: Base Aleatória B"),
+                html.P(
+                    f"""
+                    B = {np.array2string(B, precision=2, suppress_small=True,separator=', ')}
+                    """,
+                    style={'fontFamily': 'monospace', 
+                           'text-align': 'left'}
+                        )
+            ], className='step-box'))
+
+        if step >= 2:
+            content.insert(0,html.Div([
+                html.H5("Passo 2: Base Privada B'"),
+                html.P(
+                    f"""
+                    B' = {np.array2string(B_prime, precision=2, suppress_small=True)}
+                    """,
+                    style={'fontFamily': 'monospace','text-align': 'left'}
+                )
+            ], className='step-box'))
+
+        if step >= 3:
+            B_inv = np.linalg.inv(B)
+            content.insert(0,html.Div([
+                html.H5("Passo 3: Cálculo da Chave Pública U = B' × B⁻¹"),
+                html.P([
+                    "U = B' × B⁻¹ =",html.Br(), 
+                    f"{np.array2string(B_prime, precision=2)} × " 
+                    f"{np.array2string(B_inv, precision=2)}",html.Br(), 
+                    f"= {np.array2string(U, precision=2)}"
+                    ],
+                    style={'fontFamily': 'monospace','text-align': 'center'}
+                )
+            ], className='step-box'))
+
+        return html.Div([html.H3("Passo a Passo", className="algorithm-title"),
+            html.H4("Geração de Chaves"),
+            *content] 
+        , style={'marginTop': '5px', 'color': 'white', 'fontWeight': 'bold'})
+
+# Function to convert a matrix to a Dash DataTable
+def matrix_to_table(matrix, name):
+    columns = [{"name": f"Dimensão {i+1}", "id": str(i)} for i in range(matrix.shape[1])]
+    data = [{str(i): f"{val:.2f}" for i, val in enumerate(row)} for row in matrix]
+    return html.Div([
+        html.H5(name),
+        dash_table.DataTable(
+            columns=columns,
+            data=data,
+            style_table={'overflowX': 'auto', 'maxWidth': '450px'},
+            style_header={
+                'backgroundColor': 'rgb(30, 30, 30)',
+                'color': 'white',
+                'textAlign': 'center',
+                'fontWeight': 'bold',
+            },
+            style_data={
+                'backgroundColor': 'rgb(50, 50, 50)',
+                'color': 'white',
+                'border-radius': '5px',
+                'textAlign': 'center',
+                'fontFamily': 'monospace'
+            },
+        )
+    ], style={'color': 'white','marginBottom': '20px',})
+
+# Function to generate the content for the encryption steps
+def encrypt_step(ggh_data, step):
+    plaintext = np.array(ggh_data['plaintext'])
+    error = np.array(ggh_data['error'])
+    U = np.array(ggh_data['U'])
+    ciphertext = np.array(ggh_data['ciphertext'])
+
+    content = []
+
+    if step >= 4:
+        content.insert(0,html.Div([
+            html.H5("Passo 1: Geração da Mensagem Secreta (Plaintext)"),
+            html.P(
+                f"""
+                plaintext = {np.array2string(plaintext, precision=2, suppress_small=True)}
+                """,
+                style={'fontFamily': 'monospace','text-align': 'left'}
+            )
+        ], className='step-box'))
+
+    if step >= 5:
+        content.insert(0,html.Div([
+            html.H5("Passo 2: Geração do Erro Pequeno (Error)"),
+            html.P(
+                f"""
+                error = {np.array2string(error, precision=2, suppress_small=True)}
+                """,
+                style={'fontFamily': 'monospace','text-align': 'left'}
+            )
+        ], className='step-box'))
+
+    if step >= 6:
+        content.insert(0,html.Div([
+            html.H5("Passo 3: Cálculo do Ciphertext"),
+            html.P("ciphertext = plaintext × U + error = ",style={'fontWeight': 'bold'}),
+            html.P([
+                             f"{np.array2string(plaintext, precision=2)} × " 
+                             f"{np.array2string(U, precision=2)} + " 
+                             f"{np.array2string(error, precision=2)}",html.Br(),   
+                             f"= {np.array2string(ciphertext, precision=2)}"
+            ],
+                style={'fontFamily': 'monospace','text-align': 'center'}
+            )
+        ], className='step-box'))
+        
+    return html.Div([html.H3("Passo a Passo", className="algorithm-title"),
+        html.H4("Criptografia GGH"),
+        *content], style={'marginTop': '5px', 'color': 'white', 'fontWeight': 'bold'})
+
+# Function to generate the content for the decryption steps
+def decrypt_step(ggh_data, step):
+    ciphertext = np.array(ggh_data['ciphertext'])
+    error = np.array(ggh_data['error'])
+    U = np.array(ggh_data['U'])
+    public_key_inverse = inv(U)
+    
+    content = []
+    
+    if step >= 7:
+        content.insert(0,html.Div([
+            html.H5("Passo 1: Inversa da Chave Pública (U⁻¹)"),
+                html.P("Public Key Inverse",style={'fontWeight': 'bold'}),
+
+                html.P(f"U⁻¹ = {np.array2string(public_key_inverse, precision=2, suppress_small=True)}"
+                ,style={'fontFamily': 'monospace','textAlign': 'left'})
+    ], className='step-box'))
+
+    if step >= 8:
+        decrypted_plaintext = np.dot(ciphertext, public_key_inverse)
+        content.insert(0,
+    html.Div([
+        html.H5("Passo 2: Multiplicação do ciphertext pela inversa da chave pública"),
+
+        html.P([
+            f"ciphertext = {np.array2string(ciphertext, precision=2)}", html.Br(),
+            f"U⁻¹ = {np.array2string(public_key_inverse, precision=2)}"
+        ], style={'fontFamily': 'monospace', 'textAlign': 'left'}),
+
+        html.P("Decrypted Plaintext", style={'fontWeight': 'bold'}),
+
+        html.P(
+            f"ciphertext × U⁻¹ = {np.array2string(decrypted_plaintext, precision=2)}",
+            style={'fontFamily': 'monospace', 'textAlign': 'left'}
+        )
+    ], className="step-box")
+)
+
+
+        if step >= 9:
+            error_component = np.dot(error, public_key_inverse)
+            rounded_decrypted_plaintext = decrypted_plaintext - error_component
+            content.insert(0,html.Div([
+                html.H5("Passo 3: Arredondamento de Babai (Remoção do Erro)"),
+                html.P("Multiplicação do erro pela inversa da chave pública",style={'fontWeight': 'bold'}),
+                html.P([
+                    f"error × U⁻¹ =", html.Br(),
+                    f"{np.array2string(error, precision=2)} × {np.array2string(public_key_inverse, precision=2)} =", html.Br(),
+                    f"{np.array2string(error_component, precision=2)}"
+                ], style={'fontFamily': 'monospace', 'textAlign': 'left'}),
+
+                html.P("Subtração do erro decodificado do plaintext aproximado",style={'fontWeight': 'bold'}),
+                html.P([
+                    f"decrypted_plaintext - (error × U⁻¹) =", html.Br(),
+                    f"{np.array2string(decrypted_plaintext, precision=2)} - {np.array2string(error_component, precision=2)} =", html.Br(),
+                    f"{np.array2string(rounded_decrypted_plaintext, precision=2)}"
+                ], style={'fontFamily': 'monospace', 'textAlign': 'left'})
+            ], className='step-box'))
+
+
+    if step >= 10:
+        temp = np.dot(rounded_decrypted_plaintext, public_key_inverse)
+        recovered_plaintext = np.dot(temp, U)
+        recovered_plaintext = np.round(recovered_plaintext).astype(int)
+
+        content.insert(0,html.Div([
+            html.H5("Passo 4: Recuperação da Mensagem Original"),
+
+                
+                html.P("4.1 Multiplicar pela inversa da chave pública",style={'fontWeight': 'bold'}),
+                html.P([
+                    f"temp = rounded_decrypted_plaintext × U⁻¹",html.Br(),
+                    f"     = {np.array2string(rounded_decrypted_plaintext, precision=2)} ×"
+                    f"       {np.array2string(public_key_inverse, precision=2)}",html.Br(),
+                    f"     = {np.array2string(temp, precision=2)}"]
+                    ,style={'fontFamily': 'monospace','textAlign': 'left'}
+                ),
+                html.P("4.2 Multiplicar por U e arredondar",style={'fontWeight': 'bold'}),
+                html.P([
+                    f"plaintext = round(temp × U)",html.Br(),
+                    f"         = round({np.array2string(temp, precision=2)} ×"
+                    f"                 {np.array2string(U, precision=2)})",html.Br(),
+                    f"         = {np.array2string(recovered_plaintext, precision=2)}"]
+                    ,style={'fontFamily': 'monospace','textAlign': 'left'}
+                )], className='step-box'))
+
+    return html.Div([html.H3("Passo a Passo", className="algorithm-title"),
+        html.H4("Decriptografia GGH"),
+        *content], style={'marginTop': '5px', 'color': 'white', 'fontWeight': 'bold'})
